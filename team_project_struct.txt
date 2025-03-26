@@ -1,0 +1,90 @@
+Otázky
+- na front-end
+  
+
+- na databázu
+  * riešia funkciu vyhľadávania pacientov / lekárov?
+
+- na dozor
+  * komunikácia so ?serverom? ohľadom metód spracovania obrazu
+  * ako riešiť zabezpečenie/šifrovanie hesla/prihlasovacích údajov (citlivých údajov) -> šifrovanie heslom?
+    
+
+.......................................................................................
+
+Požiadavky
+- na front-end
+  * držať v pamäti vlastné dáta (vrátane obrázkov na zobrazenie)
+  * ?cookies
+
+- na databázu
+  
+
+- na dozor
+  
+  
+.......................................................................................
+
+Štruktúra
+- komunikácia s databázou 
+- komunikácia s front-endom
+-* komunikácia s metódami
+
+
+/ Používateľ  - 
+/ Pacient  -
+/ Lekár  - 
+/ Admin  - 
+
+/ Komunikácia s databázou  - M
+/ Komunikácia s front-endom (main)  - D
+
+
+........................................................................................
+
+-------------legenda: (-trieda; *metóda; /atribút; ?má byť?)
+Triedy
+- Používateľ
+  * konštruktor
+    / ID
+    / security
+  * prihlásenie sa -> overenie zaregistrovania zariadenia
+    / username
+    / password
+  * registrácia (možnosť lekár / pacient) -> overenie emailu
+    / username
+    / password
+    / email (pacientov) 
+  * zmena hesla (iba priama trieda)
+  * overenie mailu
+  * overenie zaregistrovania daného zariadenia pre daný účet
+    * poslanie mailu na overenie ak nie -> pridanie zariadenia
+    * prístup ak áno
+  * odhlásenie sa
+
+  
+  - pacient
+    / security: bool (obmedzené videnie)
+    * konštruktor
+      / (zavolanie konštruktora používateľa)
+    * výber obrazu
+    * zobrazenie obrazu
+    * volanie metód (spracovanie obrazu)
+    * pridanie obrazu
+    * odstránenie obrazu
+  
+  - lekár
+    / security: bool (obmedzené videnie)
+    / zvolený pacient
+    * konštruktor
+      / (zavolanie konštruktora používateľa)
+    * výber konkrétneho pacienta (načítanie jeho zložky)
+      * dropout (ponuky z databázy)
+    * obrázky vlastných pacientov
+  
+  - admin
+    * konštruktor
+      / (zavolanie konštruktora používateľa)
+    * zvolenie lekára (obmedzené videnie)
+    * zvolenie pacienta (obmedzené videnie)
+

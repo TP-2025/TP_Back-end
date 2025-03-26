@@ -1,0 +1,34 @@
+vkladanie:
+
+INSERT INTO Uzivatelia (meno, email, heslo_hash, rola)
+VALUES 
+('Dr. John Doe', 'john.doe@example.com', 'hashedpassword123', 'Lekar'),
+('Technician Alex', 'alex.technician@example.com', 'hashedpassword456', 'Technik');
+
+INSERT INTO Pacienti (meno, priezvisko, datum_narodenia, lekar_id)
+VALUES 
+('Marek', 'Novak', '1985-03-25', 1);  -- 1 is the id of Dr. John Doe
+
+INSERT INTO Zariadenia (nazov, typ)
+VALUES 
+('Fundus Camera 1', 'Fundus Kamera');
+
+INSERT INTO Originalne_Obrazy (pacient_id, zariadenie_id, cesta_k_suboru, kvalita, technicke_pozn, diagnosticke_pozn)
+VALUES 
+(1, 1, 'path/to/image.jpg', 'Dobra', 'No issues detected.', 'No diagnosis made.');
+
+INSERT INTO Spracovane_Obrazy (originalny_obraz_id, metoda, vystup)
+VALUES 
+(1, 'Klasifikacia', 'Classification result');
+
+
+odstránenie:
+DELETE FROM Pacienti WHERE id = 1;
+
+DELETE FROM Zariadenia WHERE id = 1;
+
+DELETE FROM Originalne_Obrazy WHERE id = 1;
+
+
+zobrazenie:
+SELECT * FROM Originalne_Obrazy; 

@@ -31,10 +31,10 @@ Požiadavky
 -* komunikácia s metódami
 
 
-/ Používateľ  - 
-/ Pacient  -
-/ Lekár  - 
-/ Admin  - 
+/ Používateľ  - D
+/ Pacient  - M
+/ Lekár  - D
+/ Admin  - M
 
 / Komunikácia s databázou  - M
 / Komunikácia s front-endom (main)  - D

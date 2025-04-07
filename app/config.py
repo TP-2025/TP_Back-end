@@ -13,4 +13,8 @@ class Settings:
     PASSWORD_SUBJECT: str = "Nové heslo"
     VERIFY_SUBJECT: str = "Verifikácia"
 
+    ADMIN_EMAIL: str = "admin@admin.com"
+    ADMIN_PASSWORD: str = "yJ02+J1_?a<V<y!bWeWL"
+
+
 settings = Settings()

@@ -18,7 +18,11 @@ Požiadavky
   * ?cookies
 
 - na databázu
-  
+  * Hromadná tabuľka pre užívateľov (obsahuje adminov, lekárov, technikov, pacientov) (id užívateľa)
+  * Vlastná tabuľka pre lekárov (id lekára (ako uživateľ), zoznam id pacientov, zoznam id technikov, ?zoznam id zariadení?)
+  * Vlastná tabuľka pre technikov (id technika (ako uživateľ), zoznam id lekárov, ?zoznam id zariadení?)
+  * Vlastná tabuľka pre pacientov (id pacienta (ako uživateľ), meno a priezvisko pacienta, rodné číslo pacienta, zoznam id lekárov, zoznam id originálnych a spracovaných obrazov)
+
 
 - na dozor
   

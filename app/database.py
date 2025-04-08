@@ -2,6 +2,7 @@ import mysql.connector
 
 """
 Uses:
+ - db_is_ready: bool = database_object.is_ready()
  - success: int = database_object.insert_one_[user, patient, original_image, processed_image, device](data: dict)
  - success: int = database_object.insert_[users, patients, original_images, processed_images, devices](data: list[dict, ])
  - success: int = database_object.delete_[users, patients, original_images, processed_images, devices](SQL_condition: str)
@@ -21,24 +22,59 @@ For example:
 class Database:
     def __init__(self):
         """
-        Function creates object database, used for communication with database
+        Initializes the database connection object.
 
-        The function defines attributes:
-        - self.conn -> holding connection information
-        - self.cursor -> used for interactions with database
+        Attempts to connect to the MySQL database and create a cursor.
+
+        Attributes:
+            conn: Holds the connection object if successful, otherwise None.
+            cursor: Holds the cursor object if successful, otherwise None.
         """
-        # defining/creating connection with database
-        self.conn = mysql.connector.connect(
-            # data for database connection (for now for test -> need to change)
-            host="sql7.freesqldatabase.com",
-            user="sql7771952",
-            password="GFGQJXMZcM",
-            database="sql7771952",
-            port=3306
-        )
 
-        # defining cursor for interaction with database
-        self.cursor = self.conn.cursor(dictionary=True)
+        # defining/creating connection with database
+        self.conn = None
+        self.cursor = None
+        db_config = {
+            # data for database connection (for now for test -> need to change)
+            "host": "sql7.freesqldatabase.com",
+            "user": "sql7771952",
+            "password": "GFGQJXMZcM",
+            "database": "sql7771952",
+            "port": 3306
+        }
+
+        try:
+            # Attempt to establish the connection
+            self.conn = mysql.connector.connect(**db_config)
+
+            # Check if the connection was successful before creating cursor
+            if self.conn.is_connected():
+                # defining cursor for interaction with database
+                self.cursor = self.conn.cursor(dictionary=True)
+            else:
+                raise ConnectionError("Connection to database failed validation check")
+
+        except mysql.connector.Error as err:
+            raise ConnectionError(f"Error connecting to MySQL database: \n"
+                                  f"Error Code: {err.errno}\n"
+                                  f"SQLSTATE: {err.sqlstate}\n"
+                                  f"Message: {err.msg}")
+
+        except Exception as e:
+            # Catch any other unexpected errors during setup
+            print(f"An unexpected error occurred during database initialization: {e}")
+            if self.conn and self.conn.is_connected():
+                self.conn.close()  # Attempt to close connection if it was partially established
+            self.conn = None
+            self.cursor = None
+            raise e
+
+    def is_ready(self) -> bool:
+        """Checks if the database connection and cursor are ready.
+
+        :return is_ready (bool)
+        """
+        return (self.conn is not None and self.conn.is_connected()) and self.cursor is not None
 
     # Function for inserting data to table (it is not meant to be accessed directly)
     def __insert(self, table: str, data: list) -> int:

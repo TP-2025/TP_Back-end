@@ -16,6 +16,7 @@ Požiadavky
 - na front-end
   * držať v pamäti vlastné dáta (vrátane obrázkov na zobrazenie)
   * ?cookies
+  * zaistiť, že ak uživateľ posiela string, všetky úvodzovky typu " sú nahradené \" aby to nerobilo problémy v skripte
 
 - na databázu
   * Hromadná tabuľka pre užívateľov (obsahuje adminov, lekárov, technikov, pacientov) (id užívateľa)

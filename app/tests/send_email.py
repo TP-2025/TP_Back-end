@@ -1,4 +1,4 @@
-from app.services.email import EmailService
+from app.frontend_oriented.services.email import EmailService
 
 EmailService = EmailService()
 

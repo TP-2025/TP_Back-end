@@ -1,5 +1,5 @@
-from app.database import Database
-from app.models.processed_image import ProcessedImage
+from app.database_oriented.database import Database
+from app.database_oriented.models.processed_image import ProcessedImage
 
 
 class OriginalImage:

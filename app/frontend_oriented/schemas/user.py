@@ -1,3 +1,6 @@
+
+#Can be removed
+
 from pydantic import BaseModel
 from enum import Enum
 from typing import Optional
@@ -24,4 +27,13 @@ class UserLoginRequest(BaseModel):
     email: str
     password: str
     role: UserRole
+
+
+get_user()
+
+
+    return basic_user_info
+
+
+get_user_detailed()
 

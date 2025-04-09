@@ -1,6 +1,6 @@
-from app.database import Database
-from app.models.patient import Patient as PatientModel
-from app.models.user import User as UserModel
+from app.database_oriented.database import Database
+from app.database_oriented.models.patient import Patient as PatientModel
+from app.database_oriented.models.user import User as UserModel
 
 
 class User:

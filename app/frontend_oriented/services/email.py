@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from smtplib import SMTP, SMTPException
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from app.utils.email_templates import EmailTemplate
+from app.frontend_oriented.utils.email_templates import EmailTemplate
 from app.config import settings
 
 

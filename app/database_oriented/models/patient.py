@@ -1,7 +1,7 @@
-from app.database import Database
-from app.models.original_image import OriginalImage
-from app.models.processed_image import ProcessedImage
-from app.services.image_processing_server import IPS
+from app.database_oriented.database import Database
+from app.database_oriented.models.original_image import OriginalImage
+from app.database_oriented.models.processed_image import ProcessedImage
+from app.third_party.image_processing_server import IPS
 
 
 class Patient:

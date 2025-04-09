@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
-from app import schemas, models, database
+from fastapi import APIRouter, HTTPException
+from app import schemas
+from app.database_oriented import database
 
 router = APIRouter()
 
@@ -10,7 +11,16 @@ def get_user(id: int):
 
 @router.post("/login")
 def login_user(request: schemas.UserLoginRequest):
+
+
+
     user = database.verify_user(request.email, request.password, request.role)
     if not user:
         raise HTTPException(status_code=401, detail="Wrong email or password")
 
+
+@router.post("/create_user")
+def create_user(request: schemas.UserCreateRequest):
+
+
+    #overenie povolení

@@ -1,10 +1,10 @@
 from app.database_oriented.database import Database
-from app.database_oriented.models.original_image import OriginalImage
-from app.database_oriented.models.processed_image import ProcessedImage
+from app.database_oriented.models.model_original_image import ModelOriginalImage
+from app.database_oriented.models.model_processed_image import ModelProcessedImage
 from app.third_party.image_processing_server import IPS
 
 
-class Patient:
+class ModelPatient:
     # Keywords for accessing patient data in database
     KW_ID = "id"
     KW_NAME = "meno"
@@ -33,51 +33,51 @@ class Patient:
         self.safe_mode = safe_mode
 
     @staticmethod
-    def constructor(data: dict, safe_mode: bool) -> "Patient":
-        """Function to construct Patient object from raw data in dictionary
+    def constructor(data: dict, safe_mode: bool) -> "ModelPatient":
+        """Function to construct ModelPatient object from raw data in dictionary
 
         :param data: (dict) patient data
         :param safe_mode: (bool) loads only non-sensitive information
-        :return: new Patient object
+        :return: new ModelPatient object
         """
         try:
-            ID = data[Patient.KW_ID]
-            medic_id = data[Patient.KW_MEDIC_ID]
+            ID = data[ModelPatient.KW_ID]
         except KeyError:
-            raise KeyError("Patient doesn't have ID or medic ID, it cannot be constructed")
+            raise KeyError("ModelPatient doesn't have ID, it cannot be constructed")
 
-        name = data.get(Patient.KW_NAME, Patient.V_EMPTY_STRING)
-        surname = data.get(Patient.KW_SURNAME, Patient.V_EMPTY_STRING)
-        year_of_birth = data.get(Patient.KW_YEAR_OF_BIRTH, Patient.V_EMPTY_INT)
-        sex = data.get(Patient.KW_SEX, Patient.V_EMPTY_STRING)
+        name = data.get(ModelPatient.KW_NAME, ModelPatient.V_EMPTY_STRING)
+        surname = data.get(ModelPatient.KW_SURNAME, ModelPatient.V_EMPTY_STRING)
+        medic_id = data.get(ModelPatient.KW_MEDIC_ID, ModelPatient.V_EMPTY_INT)
+        year_of_birth = data.get(ModelPatient.KW_YEAR_OF_BIRTH, ModelPatient.V_EMPTY_INT)
+        sex = data.get(ModelPatient.KW_SEX, ModelPatient.V_EMPTY_STRING)
         if safe_mode:
-            diagnosis = Patient.V_EMPTY_STRING
-            medical_notes = Patient.V_EMPTY_STRING
+            diagnosis = ModelPatient.V_EMPTY_STRING
+            medical_notes = ModelPatient.V_EMPTY_STRING
         else:
-            diagnosis = data.get(Patient.KW_DIAGNOSIS, Patient.V_EMPTY_STRING)
-            medical_notes = data.get(Patient.KW_MEDICAL_NOTES, Patient.V_EMPTY_STRING)
-        return Patient(ID, name, surname, year_of_birth, sex, diagnosis, medical_notes, medic_id, safe_mode)
+            diagnosis = data.get(ModelPatient.KW_DIAGNOSIS, ModelPatient.V_EMPTY_STRING)
+            medical_notes = data.get(ModelPatient.KW_MEDICAL_NOTES, ModelPatient.V_EMPTY_STRING)
+        return ModelPatient(ID, name, surname, year_of_birth, sex, diagnosis, medical_notes, medic_id, safe_mode)
 
     def deconstructor(self) -> dict:
         """
-        Function for deconstructing Patient object into dict for database use
+        Function for deconstructing ModelPatient object into dict for database use
         :return (dict): dictionary of patient data
         """
-        deconstructed = {Patient.KW_ID: self.ID,
-                         Patient.KW_NAME: self.name,
-                         Patient.KW_SURNAME: self.surname,
-                         Patient.KW_YEAR_OF_BIRTH: self.year_of_birth,
-                         Patient.KW_SEX: self.sex,
-                         Patient.KW_MEDIC_ID: self.medic_id
+        deconstructed = {ModelPatient.KW_ID: self.ID,
+                         ModelPatient.KW_NAME: self.name,
+                         ModelPatient.KW_SURNAME: self.surname,
+                         ModelPatient.KW_YEAR_OF_BIRTH: self.year_of_birth,
+                         ModelPatient.KW_SEX: self.sex,
+                         ModelPatient.KW_MEDIC_ID: self.medic_id
                          }
         if not self.safe_mode:
             deconstructed = {**deconstructed,
-                             Patient.KW_DIAGNOSIS: self.diagnosis,
-                             Patient.KW_MEDICAL_NOTES: self.medical_notes,
+                             ModelPatient.KW_DIAGNOSIS: self.diagnosis,
+                             ModelPatient.KW_MEDICAL_NOTES: self.medical_notes,
                              }
 
         filtered = {key: value for key, value in deconstructed.items()
-                    if value not in [Patient.V_EMPTY_STRING, Patient.V_EMPTY_INT, Patient.V_EMPTY_DICT]
+                    if value not in [ModelPatient.V_EMPTY_STRING, ModelPatient.V_EMPTY_INT, ModelPatient.V_EMPTY_DICT]
                     }
         return dict(filtered)
 
@@ -123,7 +123,7 @@ class Patient:
         else:
             return found_images
 
-    def select_original_image(self, imageID) -> ["OriginalImage", None]:
+    def select_original_image(self, imageID) -> ["ModelOriginalImage", None]:
         """
         Selects original image with a given ID
         :param imageID: (int) ID of the original image
@@ -134,12 +134,12 @@ class Patient:
         found = db.select_original_images(condition)
         db.close()
         try:
-            return OriginalImage.constructor(found[0])
+            return ModelOriginalImage.constructor(found[0])
         except IndexError:
             return None
 
     @staticmethod
-    def send_image_for_processing(method_id: int, image: OriginalImage):
+    def send_image_for_processing(method_id: int, image: ModelOriginalImage):
         # TODO: needs processing received info
         ips = IPS()
         processed_image = ips.use_method(method_id, image)
@@ -189,7 +189,7 @@ class Patient:
         else:
             return found_images
 
-    def select_processed_image(self, imageID) -> ["ProcessedImage", None]:
+    def select_processed_image(self, imageID) -> ["ModelProcessedImage", None]:
         """
         Selects processed image with a given ID
         :param imageID: (int) ID of the processed image
@@ -200,7 +200,7 @@ class Patient:
         found = db.select_processed_images(condition)
         db.close()
         try:
-            return ProcessedImage.constructor(found[0])
+            return ModelProcessedImage.constructor(found[0])
         except IndexError:
             return None
 

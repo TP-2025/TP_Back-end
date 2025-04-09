@@ -1,5 +1,5 @@
-from app.database_oriented.models.original_image import OriginalImage
-from app.database_oriented.models.processed_image import ProcessedImage
+from app.database_oriented.models.model_original_image import ModelOriginalImage
+from app.database_oriented.models.model_processed_image import ModelProcessedImage
 
 
 class IPS:
@@ -9,8 +9,9 @@ class IPS:
     def is_ready(self) -> bool:
         return self.connection is not None
 
-    def use_method(self, method_id, image: OriginalImage) -> ProcessedImage:
+    def use_method(self, method_id, image: ModelOriginalImage) -> ModelProcessedImage:
         try:
+            get_method_json(method_id)
             image_raw = image.get_image()
             self.connection.use_method(method_id, image)
         except NotImplementedError:

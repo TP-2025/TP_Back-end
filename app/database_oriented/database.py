@@ -1,5 +1,7 @@
 import mysql.connector
 
+from app.database_oriented.exitcodes import ExitCodes
+
 """
 Uses:
  - db_is_ready: bool = database_object.is_ready()
@@ -98,7 +100,7 @@ class Database:
             return 0
         except mysql.connector.Error as err:
             print(f"[INSERT ERROR] {err}")
-            return 1
+            return ExitCodes.DATABASE_INSERT_ERROR
 
     def __delete(self, table: str, condition: str) -> int:
         """
@@ -118,7 +120,7 @@ class Database:
             return 0
         except mysql.connector.Error as err:
             print(f"[DELETE ERROR] {err}")
-            return 1
+            return ExitCodes.DATABASE_DELETE_ERROR
 
     def __select(self, table: str, condition: str = None) -> list:
         """
@@ -161,7 +163,7 @@ class Database:
             return 0
         except mysql.connector.Error as err:
             print(f"[UPDATE ERROR] {err}")
-            return 1
+            return ExitCodes.DATABASE_UPDATE_ERROR
 
     # Users
     def insert_one_user(self, user: dict) -> int:

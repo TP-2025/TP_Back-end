@@ -8,7 +8,10 @@ Otázky
 - na dozor
   * komunikácia so ?serverom? ohľadom metód spracovania obrazu
   * ako riešiť zabezpečenie/šifrovanie hesla/prihlasovacích údajov (citlivých údajov) -> šifrovanie heslom?
-    
+  * kde je admin uložený (?databáza?), ako pridávať/odoberať adminov
+  * cvičiaci chcú github organizáciu?
+  * majú sa obrázky pri vymazaní pacientov vymazať tiež?
+  * kto má právo vymazať pacienta?
 
 .......................................................................................
 

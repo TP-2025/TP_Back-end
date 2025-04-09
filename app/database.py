@@ -141,6 +141,28 @@ class Database:
             print(f"[SELECT ERROR] {err}")
             return []
 
+    def __update(self, table: str, updates: dict, condition: str) -> int:
+        """
+        Updates specific columns in a table based on a condition.
+
+        Parameters:
+        - table (str): The table name to update.
+        - updates (dict): Dictionary of column-value pairs to update.
+        - condition (str): SQL WHERE condition to specify which rows to update.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        try:
+            set_clause = ', '.join([f"{col} = %s" for col in updates.keys()])
+            sql = f"UPDATE {table} SET {set_clause} WHERE {condition}"
+            self.cursor.execute(sql, list(updates.values()))
+            self.conn.commit()
+            return 0
+        except mysql.connector.Error as err:
+            print(f"[UPDATE ERROR] {err}")
+            return 1
+
     # Users
     def insert_one_user(self, user: dict) -> int:
         """
@@ -189,6 +211,19 @@ class Database:
         - list: List of user records.
         """
         return self.__select('uzivatelia', condition)
+
+    def update_users(self, updates: dict, condition: str) -> int:
+        """
+        Updates specific columns in the 'uzivatelia' table based on a condition.
+
+        Parameters:
+        - updates (dict): Dictionary of column-value pairs to update.
+        - condition (str): SQL WHERE condition to specify which rows to update.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        return self.__update('uzivatelia', updates, condition)
 
     # Patients
     def insert_one_patient(self, patient: dict) -> int:
@@ -239,6 +274,19 @@ class Database:
         """
         return self.__select('pacienti', condition)
 
+    def update_patients(self, updates: dict, condition: str) -> int:
+        """
+        Updates specific columns in the 'pacienti' table based on a condition.
+
+        Parameters:
+        - updates (dict): Dictionary of column-value pairs to update.
+        - condition (str): SQL WHERE condition to specify which rows to update.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        return self.__update('pacienti', updates, condition)
+
     # Original images
     def insert_one_original_image(self, image: dict) -> int:
         """
@@ -287,6 +335,19 @@ class Database:
         - list: List of user records.
         """
         return self.__select('originalne_obrazy', condition)
+
+    def update_original_images(self, updates: dict, condition: str) -> int:
+        """
+        Updates specific columns in the 'originalne_obrazy' table based on a condition.
+
+        Parameters:
+        - updates (dict): Dictionary of column-value pairs to update.
+        - condition (str): SQL WHERE condition to specify which rows to update.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        return self.__update('originalne_obrazy', updates, condition)
 
     # Processed images
     def insert_one_processed_images(self, processed_image: dict) -> int:
@@ -337,6 +398,19 @@ class Database:
         """
         return self.__select('spracovane_obrazy', condition)
 
+    def update_processed_images(self, updates: dict, condition: str) -> int:
+        """
+        Updates specific columns in the 'spracovane_obrazy' table based on a condition.
+
+        Parameters:
+        - updates (dict): Dictionary of column-value pairs to update.
+        - condition (str): SQL WHERE condition to specify which rows to update.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        return self.__update('spracovane_obrazy', updates, condition)
+
     # Devices
     def insert_one_device(self, device: dict) -> int:
         """
@@ -385,6 +459,19 @@ class Database:
         - list: List of user records.
         """
         return self.__select('zariadenia', condition)
+
+    def update_devices(self, updates: dict, condition: str) -> int:
+        """
+        Updates specific columns in the 'zariadenia' table based on a condition.
+
+        Parameters:
+        - updates (dict): Dictionary of column-value pairs to update.
+        - condition (str): SQL WHERE condition to specify which rows to update.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        return self.__update('zariadenia', updates, condition)
 
     def close(self) -> int:
         """

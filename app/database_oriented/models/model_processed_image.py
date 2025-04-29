@@ -34,10 +34,10 @@ class ModelProcessedImage:
         """
         try:
             ID = data[ModelProcessedImage.KW_ID]
+            original_image_id = data.get(ModelProcessedImage.KW_ORIGINAL_IMAGE_ID, ModelProcessedImage.V_EMPTY_INT)
         except KeyError:
-            raise KeyError("Processed image doesn't have ID, it cannot be constructed")
+            raise KeyError("Processed image doesn't have ID or original image ID, it cannot be constructed")
         patient_id = data.get(ModelProcessedImage.KW_PATIENT_ID, ModelProcessedImage.V_EMPTY_INT)
-        original_image_id = data.get(ModelProcessedImage.KW_ORIGINAL_IMAGE_ID, ModelProcessedImage.V_EMPTY_INT)
         used_method_id = data.get(ModelProcessedImage.KW_USED_METHOD_ID, ModelProcessedImage.V_EMPTY_INT)
         results = data.get(ModelProcessedImage.KW_RESULTS, ModelProcessedImage.V_EMPTY_DICT)
         path_to_image = data.get(ModelProcessedImage.KW_PATH_TO_IMAGE, ModelProcessedImage.V_EMPTY_STRING)

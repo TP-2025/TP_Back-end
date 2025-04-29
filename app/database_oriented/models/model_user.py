@@ -2,11 +2,11 @@
 class ModelUser:
     # Keywords for accessing users in database
     KW_ID = "id"
-    KW_ROLE = "role"
+    KW_ROLE = "rola"
     KW_FULL_NAME = "meno"
     KW_RIGHTS = "prava"
     KW_EMAIL = "email"
-    KW_HASHED_PASSWORD = "heslo"
+    KW_HASHED_PASSWORD = "heslo_hash"
 
     # Default values of empty data
     V_EMPTY_STRING = "Nothing here"
@@ -28,10 +28,10 @@ class ModelUser:
         """
         try:
             ID = data[ModelUser.KW_ID]
+            role = data.get(ModelUser.KW_ROLE, ModelUser.V_EMPTY_STRING)
         except KeyError:
-            raise KeyError("ModelUser doesn't have ID, it cannot be constructed")
+            raise KeyError("ModelUser doesn't have ID or role, it cannot be constructed")
         rights = data.get(ModelUser.KW_RIGHTS, 0)
-        role = data.get(ModelUser.KW_ROLE, ModelUser.V_EMPTY_STRING)
         full_name = data.get(ModelUser.KW_FULL_NAME, ModelUser.V_EMPTY_STRING)
         return ModelUser(ID, rights, role, full_name)
 

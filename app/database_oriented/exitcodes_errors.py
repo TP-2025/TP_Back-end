@@ -9,6 +9,7 @@ class ExitCodes:
     DATABASE_DELETE_ERROR = 1 << 6
     DATABASE_SELECT_ERROR = 1 << 7
     DATABASE_UPDATE_ERROR = 1 << 8
+    INDEX_ERROR = 1 << 9
 
     error_code = 0
 
@@ -39,4 +40,16 @@ class ExitCodes:
             error_message += "Database select error\n"
         if code & cls.DATABASE_UPDATE_ERROR:
             error_message += "Database update error\n"
+        if code & cls.INDEX_ERROR:
+            error_message += "Index error\n"
         return error_message
+
+
+class InvalidTargetRoleError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class UserNotFoundError(Exception):
+    def __init__(self, message):
+        super().__init__(message)

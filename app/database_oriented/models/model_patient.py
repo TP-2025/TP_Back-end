@@ -42,12 +42,12 @@ class ModelPatient:
         """
         try:
             ID = data[ModelPatient.KW_ID]
+            medic_id = data.get(ModelPatient.KW_MEDIC_ID, ModelPatient.V_EMPTY_INT)
         except KeyError:
-            raise KeyError("ModelPatient doesn't have ID, it cannot be constructed")
+            raise KeyError("ModelPatient doesn't have ID or medic id, it cannot be constructed")
 
         name = data.get(ModelPatient.KW_NAME, ModelPatient.V_EMPTY_STRING)
         surname = data.get(ModelPatient.KW_SURNAME, ModelPatient.V_EMPTY_STRING)
-        medic_id = data.get(ModelPatient.KW_MEDIC_ID, ModelPatient.V_EMPTY_INT)
         year_of_birth = data.get(ModelPatient.KW_YEAR_OF_BIRTH, ModelPatient.V_EMPTY_INT)
         sex = data.get(ModelPatient.KW_SEX, ModelPatient.V_EMPTY_STRING)
         if safe_mode:
@@ -89,8 +89,8 @@ class ModelPatient:
         :return: success code (0 on success, 1 on error)
         """
         image_data = {
-            "pacient_id": self.ID,
             **image_data,
+            "pacient_id": self.ID,
             "image": image
         }
         db = Database()
@@ -101,8 +101,9 @@ class ModelPatient:
     def search_original_images(self, condition: str, simplified: bool = True):
         """
         Searches for original images connected to this patient
-        :param condition: (str) SQL WHERE condition
-        :param simplified: (bool) if True, returns simplified list
+        :parameter
+         - condition: (str) SQL WHERE condition
+         - simplified: (bool) if True, returns simplified list
         :return: (list) list of original images
         """
         db = Database()

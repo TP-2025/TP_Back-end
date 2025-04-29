@@ -1,6 +1,6 @@
 import mysql.connector
 
-from app.database_oriented.exitcodes import ExitCodes
+from app.database_oriented.exitcodes_errors import ExitCodes
 
 """
 Uses:
@@ -100,7 +100,12 @@ class Database:
             return 0
         except mysql.connector.Error as err:
             print(f"[INSERT ERROR] {err}")
+            self.close()
             return ExitCodes.DATABASE_INSERT_ERROR
+        except IndexError as err:
+            print(f"[INSERT ERROR] {err}")
+            self.close()
+            return ExitCodes.DATABASE_INSERT_ERROR | ExitCodes.INDEX_ERROR
 
     def __delete(self, table: str, condition: str) -> int:
         """
@@ -120,6 +125,7 @@ class Database:
             return 0
         except mysql.connector.Error as err:
             print(f"[DELETE ERROR] {err}")
+            self.close()
             return ExitCodes.DATABASE_DELETE_ERROR
 
     def __select(self, table: str, condition: str = None) -> list:
@@ -141,6 +147,7 @@ class Database:
             return self.cursor.fetchall()
         except mysql.connector.Error as err:
             print(f"[SELECT ERROR] {err}")
+            self.close()
             return []
 
     def __update(self, table: str, updates: dict, condition: str) -> int:
@@ -163,6 +170,7 @@ class Database:
             return 0
         except mysql.connector.Error as err:
             print(f"[UPDATE ERROR] {err}")
+            self.close()
             return ExitCodes.DATABASE_UPDATE_ERROR
 
     # Users

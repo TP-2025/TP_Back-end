@@ -41,9 +41,9 @@ class ModelOriginalImage:
         """
         try:
             ID = data[ModelOriginalImage.KW_ID]
+            patient_id = data.get(ModelOriginalImage.KW_PATIENT_ID, ModelOriginalImage.V_EMPTY_INT)
         except KeyError:
-            raise KeyError("Original image doesn't have ID, it cannot be constructed")
-        patient_id = data.get(ModelOriginalImage.KW_PATIENT_ID, ModelOriginalImage.V_EMPTY_INT)
+            raise KeyError("Original image doesn't have ID or patient ID, it cannot be constructed")
         device_id = data.get(ModelOriginalImage.KW_DEVICE_ID, ModelOriginalImage.V_EMPTY_INT)
         path_to_image = data.get(ModelOriginalImage.KW_PATH_TO_IMAGE, ModelOriginalImage.V_EMPTY_STRING)
         quality = data.get(ModelOriginalImage.KW_QUALITY, ModelOriginalImage.V_EMPTY_STRING)

@@ -1,5 +1,5 @@
 from app.database_oriented.database import Database
-from app.database_oriented.exitcodes import ExitCodes
+from app.database_oriented.exitcodes_errors import ExitCodes, InvalidTargetRoleError, UserNotFoundError
 from app.database_oriented.models.model_patient import ModelPatient
 from app.database_oriented.models.model_user import ModelUser
 
@@ -12,23 +12,26 @@ class User:
     ALLOWED_TO_SEE_ALL_PATIENTS = 1 << 3
     ALLOWED_TO_SEE_ALL_TECHNICS = 1 << 4
     ALLOWED_TO_SEE_ALL_MEDICS = 1 << 5
-    ALLOWED_TO_DELETE_PATIENTS = 1 << 6
-    ALLOWED_TO_DELETE_MEDICS = 1 << 7
-    ALLOWED_TO_DELETE_TECHNICS = 1 << 8
-    ALLOWED_TO_SEE_MEDICALS = 1 << 9
-    ALLOWED_TO_CHANGE_RIGHTS_FOR_MEDICS = 1 << 10
-    ALLOWED_TO_CHANGE_RIGHTS_FOR_TECHNICS = 1 << 11
-    ALLOWED_TO_CHANGE_ROLES = 1 << 12
+    ALLOWED_TO_SEE_ALL_ADMINS = 1 << 6
+    ALLOWED_TO_DELETE_PATIENTS = 1 << 7
+    ALLOWED_TO_DELETE_MEDICS = 1 << 8
+    ALLOWED_TO_DELETE_TECHNICS = 1 << 9
+    ALLOWED_TO_DELETE_ADMINS = 1 << 10
+    ALLOWED_TO_SEE_MEDICALS = 1 << 11
+    ALLOWED_TO_CHANGE_RIGHTS_FOR_MEDICS = 1 << 12
+    ALLOWED_TO_CHANGE_RIGHTS_FOR_TECHNICS = 1 << 13
+    ALLOWED_TO_CHANGE_ROLES = 1 << 14
+    ALLOWED_TO_ADD_IMAGES = 1 << 15
 
-    ALLOWED_ALL = (1 << 13) - 1
+    ALLOWED_ALL = (1 << 16) - 1
 
     # roles
-    ROLE_ADMIN = "admin"
-    ROLE_MEDIC = "lekar"
-    ROLE_TECHNIC = "technik"
-    ROLE_PATIENT = "pacient"
+    ROLE_ADMIN = "Admin"
+    ROLE_MEDIC = "Lekar"
+    ROLE_TECHNIC = "Technik"
+    ROLE_PATIENT = "Pacient"
 
-    def __init__(self, ID: int, rights: int, role: str, full_name: str):
+    def __init__(self, ID: int, rights: int, role: str, full_name: str, associated_users=None):
         self.ID = ID
         self.rights = rights
         self.role = role
@@ -36,6 +39,7 @@ class User:
 
         self.token = None
         self.selected_patient = None
+        self.selected_user = None
         self.selected_original_image = None
         self.selected_processed_image = None
 
@@ -78,13 +82,14 @@ class User:
             return False
 
     @staticmethod
-    def add_user(email: str, full_name: str, hashed_password: str, role: str) -> int:
+    def add_user(email: str, full_name: str, role: str) -> int:
         """
         Adds user to database (needs to check the permission with user_object.is_allowed_to_add_users())
-        :param full_name: (str) full name of user in format "Priezvisko Meno"
-        :param email: (str) email of user
-        :param hashed_password: (str) hashed password of user
-        :param role: (str) role of user
+        :parameter
+         - full_name: (str) full name of user in format "Priezvisko Meno"
+         - email: (str) email of user
+         - hashed_password: (str) hashed password of user
+         - role: (str) role of user
         :return: (int) ExitCodes
         """
 
@@ -95,22 +100,24 @@ class User:
         elif role == User.ROLE_PATIENT:
             rights = 0
         elif role == User.ROLE_ADMIN:
-            print("Admin cannot be added")
-            return ExitCodes.INVALID_TARGET_ROLE
+            rights = User.ALLOWED_ALL
+            # raise InvalidTargetRoleError("Admin cannot be added")
         else:
-            print("Invalid role")
-            return ExitCodes.INVALID_TARGET_ROLE
+            raise InvalidTargetRoleError("Invalid role")
+
+        generated_password = "AAAAAAAAAAAAAAAAAAAAAAAAAA"
 
         db = Database()
         exit_code = db.insert_one_user(
             {
                 ModelUser.KW_EMAIL: email,
                 ModelUser.KW_FULL_NAME: full_name,
-                ModelUser.KW_RIGHTS: rights,
-                ModelUser.KW_HASHED_PASSWORD: hashed_password,
+                # ModelUser.KW_RIGHTS: rights,   # TODO: add rights
+                ModelUser.KW_HASHED_PASSWORD: generated_password,  # TODO: add hashed password
                 ModelUser.KW_ROLE: role,
             }
         )
+        print(f"R: {rights} == ", end="")
         db.close()
         return exit_code
 
@@ -138,8 +145,9 @@ class User:
     def is_change_of_rights_allowed(self, user: ModelUser, rights: int) -> bool:
         """
         Function checks if user is allowed to change rights
-        :param user: (app.models.user.User)
-        :param rights:
+        :parameter
+         - user: (app.models.user.User)
+         - rights: (int) use flags User.ALLOWED_TO_...
         :return: (bool) is user allowed to change rights for the target user?
         """
         changed_bits = rights ^ user.rights
@@ -154,17 +162,17 @@ class User:
     def update_rights(self, allow_rights: int, deny_rights: int, userID: int) -> int:
         """
         Function updates rights of user
-        :param allow_rights: (int) rights to allow
-        :param deny_rights: (int) rights to deny
-        :param userID: (int) ID of user
+        :parameter
+         - allow_rights: (int) rights to allow, use flags User.ALLOWED_TO_...
+         - deny_rights: (int) rights to deny, use flags User.ALLOWED_TO_...
+         - userID: (int) ID of user
         :return: (int) Exit code
         """
         db = Database()
         try:
             user = db.select_users(f"{ModelUser.KW_ID} = {userID}")[0]
         except IndexError:
-            print("User not found")
-            return ExitCodes.USER_NOT_FOUND
+            raise UserNotFoundError("User not found")
 
         user = ModelUser.constructor(user)
         rights = (user.rights | allow_rights) & (~deny_rights)
@@ -176,22 +184,21 @@ class User:
             return exit_code
         else:
             db.close()
-            print("Not allowed to change rights")
-            return ExitCodes.PERMISSION_DENIED
+            raise PermissionError("Not allowed to change rights")
 
     def change_rights(self, rights: int, userID: int) -> int:
         """
         Function updates rights of user
-        :param rights: (int) new rights of user
-        :param userID: (int) ID of user
+        :parameter
+         - rights: (int) new rights of user
+         - userID: (int) ID of user
         :return: (int) Exit code
         """
         db = Database()
         try:
             user = db.select_users(f"{ModelUser.KW_ID} = {userID}")[0]
         except IndexError:
-            print("User not found")
-            return ExitCodes.USER_NOT_FOUND
+            raise UserNotFoundError("User not found")
 
         user = ModelUser.constructor(user)
         allowed = self.is_change_of_rights_allowed(user, rights)
@@ -203,8 +210,7 @@ class User:
             return exit_code
         else:
             db.close()
-            print("Not allowed to change rights")
-            return ExitCodes.PERMISSION_DENIED
+            raise PermissionError("Not allowed to change rights")
 
     def update_my_user_info(self, data: dict) -> int:
         """
@@ -234,10 +240,11 @@ class User:
     def search_patients(self, condition: str, medicID: int, simplified: bool = True) -> list:
         """
         Searches in database for patients using SQL WHERE condition
-        :param condition: (str) SQL WHERE condition
-        :param medicID: (int) ID of medic to filter the patients.
+        :parameter
+         - condition: (str) SQL WHERE condition
+         - medicID: (int) ID of medic to filter the patients.
             If -1, no filtering (usable with ALLOWED_TO_SEE_ALL_PATIENTS)
-        :param simplified: (bool) if True, returns simplified list
+         - simplified: (bool) if True, returns simplified list
         :return: (list) list of patients
         """
         db = Database()
@@ -260,11 +267,12 @@ class User:
         else:
             return found_patients
 
-    def select_patient(self, patientID: int, safe_mode: bool = False) -> [ModelPatient, None]:
+    def select_one_patient(self, patientID: int, safe_mode: bool = False) -> [ModelPatient, None]:
         """
         Selects patient with a given ID from database
-        :param patientID:
-        :param safe_mode: (bool) if True, returns only non-sensitive data
+        :parameter
+         - patientID:
+         - safe_mode: (bool) if True, returns only non-sensitive data
         :return: [Patient, None] returns selected Patient object or None
         """
         db = Database()
@@ -275,7 +283,8 @@ class User:
         found = db.select_patients(condition)
         db.close()
         try:
-            return ModelPatient.constructor(found[0], safe_mode)
+            self.selected_patient = ModelPatient.constructor(found[0], safe_mode)
+            return self.selected_patient
         except IndexError:
             return None
 
@@ -283,14 +292,17 @@ class User:
                          diagnosis: str = "Unknown", medical_notes: str = "", medic_id: int = -1) -> int:
         """
         Adds patient data to database, needs to be called immediately after adding patient user to database by add_user
-        :param patient_userID: (int) ID of patient user
-        :param year_of_birth: (int, optional) year of birth of patient
-        :param sex: (str, optional) sex of patient
-        :param diagnosis: (str, optional) diagnosis of patient
-        :param medical_notes: (str, optional) medical notes of patient
-        :param medic_id: (int, optional) ID of medic user
+        :parameter
+         - patient_userID: (int) ID of patient user
+         - year_of_birth: (int, optional) year of birth of patient
+         - sex: (str, optional) sex of patient
+         - diagnosis: (str, optional) diagnosis of patient
+         - medical_notes: (str, optional) medical notes of patient
+         - medic_id: (int, optional) ID of medic user
         :return: (int) 0 on success, 1 if user is not allowed to add patients
-        :raise IndexError: if patient is not a user
+        :raises
+         - UserNotFoundError: if patient is not a user
+         - PermissionError: if user is not allowed to add patients
         """
 
         if self.rights & User.ALLOWED_TO_ADD_PATIENTS:
@@ -298,8 +310,7 @@ class User:
             try:
                 user = db.select_users(f"{ModelUser.KW_ID} = {patient_userID}")[0]
             except IndexError:
-                print("Patient is not a user")
-                return ExitCodes.USER_NOT_FOUND
+                raise UserNotFoundError("Patient is not a user")
 
             name = user[ModelPatient.KW_NAME]
             surname = user[ModelPatient.KW_SURNAME]
@@ -317,28 +328,126 @@ class User:
             db.close()
             return exit_code
         else:
-            print("Not allowed to add patients")
-            return ExitCodes.PERMISSION_DENIED
+            raise PermissionError("Not allowed to add patients")
 
-    def delete_selected_patient(self, patient: ModelPatient):
+    def add_patient(self, email: str, name: str, surname: str, year_of_birth: int = -1, sex: str = "Unknown",
+                    diagnosis: str = "Unknown", medical_notes: str = "", medic_id: int = -1):
+        """
+        Adds patient to database and adds patient info
+        :parameter
+         - email: (str) email of patient
+         - name: (str) name of patient
+         - surname: (str) surname of patient
+         - year_of_birth: (int, optional) year of birth of patient
+         - sex: (str, optional) sex of patient
+         - diagnosis: (str, optional) diagnosis of patient
+         - medical_notes: (str, optional) medical notes of patient
+         - medic_id: (int, optional) ID of medic user
+        :return: (int) Exitcode
+        :raises
+         - UserNotFoundError: if patient is not a user
+         - PermissionError: if user is not allowed to add patients
+        """
+        if self.is_allowed_to_add_users(User.ROLE_PATIENT):
+            generated_password = "AAAAAAAAAAAAAAAAA"  # TODO: Needs implementing generation of hashed password
+            exitcode = self.add_user(email, f"{name} {surname}", generated_password, User.ROLE_PATIENT)
+            try:
+                patient = self.search_users(f"{ModelUser.KW_EMAIL} = {email}", False, False)[0]
+            except IndexError:
+                return exitcode | ExitCodes.DATABASE_SELECT_ERROR
+            self.add_patient_info(patient[ModelUser.KW_ID], year_of_birth, sex, diagnosis, medical_notes, medic_id)
+        else:
+            raise PermissionError("Not allowed to add patients")
+
+    def delete_selected_patient(self) -> int:
         """
         Deletes selected patient from database, including images
-        :param patient: (ModelPatient) patient to delete
-        :return:
+        :return: (int) 0 on success, 1 if user is not allowed to delete patients
+        :raise PermissionError: if user is not allowed to delete patients
         """
-        if self.rights & User.ALLOWED_TO_DELETE_PATIENTS:
-            condition = f"{ModelPatient.KW_ID} = {patient.ID}"
+        if self.rights & User.ALLOWED_TO_DELETE_PATIENTS and self.selected_patient is not None:
+            condition = f"{ModelPatient.KW_ID} = {self.selected_patient.ID}"
             db = Database()
             exit_code = db.delete_patients(condition)
             exit_code |= db.delete_processed_images(condition)
             exit_code |= db.delete_original_images(condition)
             db.close()
+            self.selected_patient = None
             return exit_code
         else:
-            print("Not allowed to delete patients")
-            return ExitCodes.PERMISSION_DENIED
+            raise PermissionError("Not allowed to delete patients")
 
-    # TODO: Add methods for patient changing information
-    # TODO: Add methods for technic adding / deleting
-    # TODO: Add methods for medic adding / deleting
-    # TODO: Add methods for changing password (self)
+    def search_users(self, condition: str, simplified: bool = True, filtered: bool = True) -> list:
+        db = Database()
+        found_users = db.select_users(condition)
+        db.close()
+
+        if filtered:
+            for user in found_users:
+                if user[ModelUser.KW_ID] in self.associated_users:
+                    continue
+                elif user[ModelUser.KW_ROLE] == User.ROLE_ADMIN and self.rights & User.ALLOWED_TO_SEE_ALL_ADMINS:
+                    found_users.remove(user)
+                elif user[ModelUser.KW_ROLE] == User.ROLE_MEDIC and self.rights & User.ALLOWED_TO_SEE_ALL_MEDICS:
+                    found_users.remove(user)
+                elif user[
+                    ModelUser.KW_ROLE] == User.ROLE_TECHNIC and self.rights & User.ALLOWED_TO_SEE_ALL_TECHNICS:
+                    found_users.remove(user)
+                elif user[
+                    ModelUser.KW_ROLE] == User.ROLE_PATIENT and self.rights & User.ALLOWED_TO_SEE_ALL_PATIENTS:
+                    found_users.remove(user)
+
+        if simplified:
+            simplified_list = []
+            for user in found_users:
+                try:
+                    simplified_list.append({
+                        "id": user[ModelUser.KW_ID],
+                        "fullname": user[ModelUser.KW_FULL_NAME],
+                    })
+                except KeyError:
+                    continue
+            return simplified_list
+        else:
+            return found_users
+
+    def select_one_user(self, userID: int = -1, email: str = "") -> int:
+        """
+        Selects user with a given ID from database
+        :parameter
+         - userID: (int, optional) ID of user
+         - email: (str, optional) email of user
+        :return: (int) ExitCode
+        """
+        db = Database()
+        if userID != -1:
+            found = db.select_users(f"{ModelUser.KW_ID} = {userID}")
+        else:
+            found = db.select_users(f"{ModelUser.KW_EMAIL} = '{email}'")
+        db.close()
+        try:
+            self.selected_user = ModelUser.constructor(found[0])
+            return ExitCodes.SUCCESS
+        except IndexError:
+            return ExitCodes.USER_NOT_FOUND
+
+    def delete_selected_user(self) -> int:
+        """
+        Deletes selected user from database
+        :return: (int) ExitCode
+        """
+        if self.selected_user is None:
+            raise UserNotFoundError("No user selected")
+        elif self.rights & User.ALLOWED_TO_DELETE_PATIENTS and self.selected_user.role == User.ROLE_PATIENT:
+            condition = f"{ModelUser.KW_ID} = {self.selected_user.ID}"
+        elif self.rights & User.ALLOWED_TO_DELETE_MEDICS and self.selected_user.role == User.ROLE_MEDIC:
+            condition = f"{ModelUser.KW_ID} = {self.selected_user.ID}"
+        elif self.rights & User.ALLOWED_TO_DELETE_TECHNICS and self.selected_user.role == User.ROLE_TECHNIC:
+            condition = f"{ModelUser.KW_ID} = {self.selected_user.ID}"
+        else:
+            raise PermissionError(f"Not allowed to delete users with role {self.selected_user.role}")
+        db = Database()
+        exit_code = db.delete_users(condition)
+        db.close()
+        self.selected_user = None
+        return exit_code

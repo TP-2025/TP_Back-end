@@ -1,0 +1,31 @@
+Pacient-model
+
+# pridanie obrazu                           image_data   -> uloží obrázok do user.selected_user.selected_image
+user.selected_user.add_original_image({
+    # kw.KW_IMAGE_DEVICE_ID: 0,  # TODO: treba lepšie implementova zariadenia
+    kw.KW_IMAGE_PATH: "pics/pic.png",
+    kw.KW_IMAGE_QUALITY: "Dobra",
+    kw.KW_IMAGE_NOTE_TECHNIC: "technicke_pozn",
+    kw.KW_IMAGE_NOTE_DIAGNOSIS: "diagnosticke_pozn",
+    kw.KW_IMAGE_EYE: "r",
+    kw.KW_IMAGE_DATE: "01.01.0001",
+    # kw.KW_IMAGE_TECHNIC_ID: 1
+})
+
+
+#  -> vráti všetky originálne obrazy spojené s daným pacientom
+user_medic.selected_user.get_original_images()
+
+#  základné vyh¾adávanie originálnych obrazov               sql podmienka               -> vráti list[dict, ] všetkých obrazov, ktoré spåòajú podmienku
+user_medic.selected_user.search_original_images(f"{kw.KW_IMAGE_QUALITY} = 'Dobra' AND {kw.KW_IMAGE_EYE} = 'r'")
+
+
+# Poslanie originálnych obrazov na spracovanie
+
+images = user_medic.selected_user.get_original_images()
+model_image = ModelOriginalImage.constructor(images[0])
+
+user_medic.selected_user.send_image_for_processing(model_image, {
+    kw.KW_PIMAGE_USED_METHOD_ID: 1,
+    # ...
+})

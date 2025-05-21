@@ -1,0 +1,9 @@
+#                                                            mail              -> dict
+user_patient_info = User.get_user_basic_info_by_email("rafael.lamarski@gama.rum")
+
+#                        id                 token       -> Patient(User)
+user_patient = Patient(user_patient_info["id"], "gamara")
+
+
+# Práca s obrázkami sa robí cez self.selected_user (pozri Examples/selected_user/Pacient.txt)
+user_patient.selected_user.get_original_images()

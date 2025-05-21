@@ -1,0 +1,51 @@
+Medic voèi pacientovi
+#                                                            mail              -> dict
+user_medic_info = User.get_user_basic_info_by_email("jane.smith@example.com")
+
+#                        id                 token       -> Medic(User)
+user_medic = Medic(user_medic_info["id"], "Gama123")
+
+#                       rola                    user_data + pacient_data  , hashed_password              -> nastaví user_medic.selected_user na vytvoreného uživate¾a
+user_medic.add_user(kw.ROLE_PATIENT, {
+    kw.KW_USER_NAME: "Mike", kw.KW_USER_SURNAME: "Wazowski", kw.KW_PATIENT_DATE_OF_BIRTH: "31.12.",
+    kw.KW_PATIENT_MEDIC_ID: user_medic_info["id"], kw.KW_USER_EMAIL: "mike.wazowski@example.com", kw.KW_USER_SEX: "muž",
+    kw.KW_USER_YEAR_OF_BIRTH: 2026
+}, "Alfa123")
+
+#                                       -> list[dict,]: vráti zoznam pacientov (len svojich alebo všetkých ak má na to právo (default False))
+patients = user_medic.get_patients()
+
+
+patient0 = patients[0] # zvolenie prvého pacienta z predošlého zoznamu
+
+Vymazanie pacienta
+buï: 
+        #                                   id                  -> uloží nájdeného pacienta do user_medic.selected_user
+        user_medic.select_patient_by_patient_id(patient0[kw.KW_PATIENT_ID])
+        
+        #                                   -> vymaže pacienta uloženého v user_medic.selected_user
+        user_medic.delete_selected_user()
+        
+alebo:
+        # vymaže pacienta s daným id (spraví tie dva kroky v predošlej možnosti)
+        user_medic.delete_patient_by_patient_id(patient0[kw.KW_PATIENT_ID])
+
+
+
+
+
+
+Medic voèi technikovi
+#                                                            mail              -> dict
+user_medic_info = User.get_user_basic_info_by_email("jane.smith@example.com")
+
+#                        id                 token       -> Medic(User)
+user_medic = Medic(user_medic_info["id"], "Gama123")
+
+#                       rola                    user_data + pacient_data , hashed_password               -> nastaví user_medic.selected_user na vytvoreného uživate¾a
+user_medic.add_user(kw.ROLE_TECHNIC, {
+    kw.KW_USER_NAME: "Terrabrock", kw.KW_USER_SURNAME: "Gamara", kw.KW_USER_EMAIL: "daco@alfa.bac",
+    kw.KW_USER_SEX: "iné", kw.KW_USER_YEAR_OF_BIRTH: 512}, "rasberry")
+
+
+# TODO: get_technics

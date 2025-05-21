@@ -1,0 +1,32 @@
+Prihlásenie: 
+	- User.get_user_basic_info_by_email(email: str)
+        -> vráti dict{"id": _id_ (int),  # potrebné v ďalšom kroku na inicializáciu triedy použivateľa
+                      "email": _email_ (str),
+                      "role_id": _roleID_ (int),
+                      "role": _rola_ (str),     # podľa toho zavolať v ďalšom kroku konkrétnu triedu
+                      "hashed_password": _password_(str)  # aby bolo možné overiť, prihlasovacie údaje
+                     }
+        -> vráti None, ak nebol nájdený užívateľ
+    
+    - dať inicializovať objekt podľa želanej triedy
+        > Admin(id: int, token_relacie: str) 
+        > Technic(id: int, token_relacie: str)
+        > Medic(id: int, token_relacie: str)
+        > Patient(id: int, token_relacie: str)
+    - možné používať metódy
+    
+
+Vytvorenie užívateľa:
+    - nutné byť prihlásený (označované ďalej ako self)
+    - self.add_user(target_role: str, user_data: dict, hashed_password: str)
+        -> nastaví self.selected_user na daného užívateľa
+        
+
+(Medic) Získanie zoznamu pacientov obsahujúceho {
+                                            "pacient_id": _pacient_id_,
+                                            "sex": _sex_,
+                                            
+                                         }
+        
+
+    

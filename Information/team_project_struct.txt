@@ -11,7 +11,8 @@ Otázky
   * kde je admin uložený (?databáza?), ako pridávať/odoberať adminov
   * cvičiaci chcú github organizáciu?
   * majú sa obrázky pri vymazaní pacientov vymazať tiež?
-  * kto má právo vymazať pacienta?
+  * Technik má vidieť obrazy, čo poslal pod svojim kontom -> čo môže s nimi robiť?
+
 
 .......................................................................................
 

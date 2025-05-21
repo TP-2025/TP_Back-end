@@ -1,5 +1,5 @@
-from app.database_oriented.models.model_original_image import ModelOriginalImage
-from app.database_oriented.models.model_processed_image import ModelProcessedImage
+from app.database_oriented.models.modelimages.model_original_image import ModelOriginalImage
+from app.database_oriented.models.modelimages.model_processed_image import ModelProcessedImage
 
 
 class IPS:
@@ -14,6 +14,14 @@ class IPS:
             get_method_json(method_id)
             image_raw = image.get_image()
             self.connection.use_method(method_id, image)
+        except NotImplementedError:
+            print("Connection not implemented yet")
+        except Exception as e:
+            raise e
+
+    def close(self):
+        try:
+            self.connection.close()
         except NotImplementedError:
             print("Connection not implemented yet")
         except Exception as e:

@@ -1,4 +1,7 @@
+from collections.abc import Callable
+
 import mysql.connector
+import app.database_oriented.keywords as kw
 
 from app.database_oriented.exitcodes_errors import ExitCodes
 
@@ -29,8 +32,8 @@ class Database:
         Attempts to connect to the MySQL database and create a cursor.
 
         Attributes:
-            conn: Holds the connection object if successful, otherwise None.
-            cursor: Holds the cursor object if successful, otherwise None.
+            self.conn: Holds the connection object if successful, otherwise None.
+            self.cursor: Holds the cursor object if successful, otherwise None.
         """
 
         # defining/creating connection with database
@@ -39,9 +42,9 @@ class Database:
         db_config = {
             # data for database connection (for now for test -> need to change)
             "host": "sql7.freesqldatabase.com",
-            "user": "sql7771952",
-            "password": "GFGQJXMZcM",
-            "database": "sql7771952",
+            "user": "sql7774696",
+            "password": "A3NhQWp1Iu",
+            "database": "sql7774696",
             "port": 3306
         }
 
@@ -53,6 +56,8 @@ class Database:
             if self.conn.is_connected():
                 # defining cursor for interaction with database
                 self.cursor = self.conn.cursor(dictionary=True)
+                if self.cursor is None:
+                    raise ConnectionError("Failed to create cursor")
             else:
                 raise ConnectionError("Connection to database failed validation check")
 
@@ -70,6 +75,16 @@ class Database:
             self.conn = None
             self.cursor = None
             raise e
+
+    @staticmethod
+    def _filter_dict(data: dict, allowed_keys: list) -> dict:
+        """Filters a dictionary to include only the specified keys.
+        :parameter
+         - data (dict): The dictionary to filter.
+         - allowed_keys (list): The list of allowed keys from kw library.
+        :return filtered_dict (dict): The filtered dictionary.
+        """
+        return {key: value for key, value in data.items() if key in allowed_keys}
 
     def is_ready(self) -> bool:
         """Checks if the database connection and cursor are ready.
@@ -173,316 +188,6 @@ class Database:
             self.close()
             return ExitCodes.DATABASE_UPDATE_ERROR
 
-    # Users
-    def insert_one_user(self, user: dict) -> int:
-        """
-        Inserts a single user into the 'uzivatelia' table.
-
-        Parameters:
-        - user (dict): Dictionary containing user fields.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__insert('uzivatelia', [user, ])
-
-    def insert_users(self, users: list) -> int:
-        """
-        Inserts multiple users into the 'uzivatelia' table.
-
-        Parameters:
-        - users (list): List of user dictionaries.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__insert('uzivatelia', users)
-
-    def delete_users(self, condition: str) -> int:
-        """
-        Deletes users from the 'uzivatelia' table based on a condition.
-
-        Parameters:
-        - condition (str): SQL WHERE condition.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__delete('uzivatelia', condition)
-
-    def select_users(self, condition: str = None) -> list:
-        """
-        Retrieves users from the 'uzivatelia' table.
-
-        Parameters:
-        - condition (str, optional): SQL WHERE condition.
-
-        Returns:
-        - list: List of user records.
-        """
-        return self.__select('uzivatelia', condition)
-
-    def update_users(self, updates: dict, condition: str) -> int:
-        """
-        Updates specific columns in the 'uzivatelia' table based on a condition.
-
-        Parameters:
-        - updates (dict): Dictionary of column-value pairs to update.
-        - condition (str): SQL WHERE condition to specify which rows to update.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__update('uzivatelia', updates, condition)
-
-    # Patients
-    def insert_one_patient(self, patient: dict) -> int:
-        """
-        Inserts a single patient into the 'pacienti' table.
-
-        Parameters:
-        - patient (dict): Dictionary containing patient fields.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__insert('pacienti', [patient, ])
-
-    def insert_patients(self, patients: list) -> int:
-        """
-        Inserts multiple patients into the 'pacienti' table.
-
-        Parameters:
-        - patients (list): List of patient dictionaries.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__insert('pacienti', patients)
-
-    def delete_patients(self, condition: str) -> int:
-        """
-        Deletes patients from the 'pacienti' table based on a condition.
-
-        Parameters:
-        - condition (str): SQL WHERE condition.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__delete('pacienti', condition)
-
-    def select_patients(self, condition: str = None) -> list:
-        """
-        Retrieves patients from the 'pacienti' table.
-
-        Parameters:
-        - condition (str, optional): SQL WHERE condition.
-
-        Returns:
-        - list: List of user records.
-        """
-        return self.__select('pacienti', condition)
-
-    def update_patients(self, updates: dict, condition: str) -> int:
-        """
-        Updates specific columns in the 'pacienti' table based on a condition.
-
-        Parameters:
-        - updates (dict): Dictionary of column-value pairs to update.
-        - condition (str): SQL WHERE condition to specify which rows to update.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__update('pacienti', updates, condition)
-
-    # Original images
-    def insert_one_original_image(self, image: dict) -> int:
-        """
-        Inserts a single original image into the 'originalne_obrazy' table.
-
-        Parameters:
-        - image (dict): Dictionary containing image fields.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__insert('originalne_obrazy', [image, ])
-
-    def insert_original_images(self, images: list) -> int:
-        """
-        Inserts multiple images into the 'originalne_obrazy' table.
-
-        Parameters:
-        - images (list): List of image dictionaries.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__insert('originalne_obrazy', images)
-
-    def delete_original_images(self, condition: str) -> int:
-        """
-        Deletes images from the 'originalne_obrazy' table based on a condition.
-
-        Parameters:
-        - condition (str): SQL WHERE condition.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__delete('originalne_obrazy', condition)
-
-    def select_original_images(self, condition: str = None) -> list:
-        """
-        Retrieves images from the 'originalne_obrazy' table.
-
-        Parameters:
-        - condition (str, optional): SQL WHERE condition.
-
-        Returns:
-        - list: List of user records.
-        """
-        return self.__select('originalne_obrazy', condition)
-
-    def update_original_images(self, updates: dict, condition: str) -> int:
-        """
-        Updates specific columns in the 'originalne_obrazy' table based on a condition.
-
-        Parameters:
-        - updates (dict): Dictionary of column-value pairs to update.
-        - condition (str): SQL WHERE condition to specify which rows to update.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__update('originalne_obrazy', updates, condition)
-
-    # Processed images
-    def insert_one_processed_images(self, processed_image: dict) -> int:
-        """
-        Inserts a single processed image into the 'spracovane_obrazy' table.
-
-        Parameters:
-        - processed image (dict): Dictionary containing image fields.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__insert('spracovane_obrazy', [processed_image, ])
-
-    def insert_processed_images(self, processed_images: list) -> int:
-        """
-        Inserts multiple images into the 'spracovane_obrazy' table.
-
-        Parameters:
-        - processed_images (list): List of image dictionaries.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__insert('spracovane_obrazy', processed_images)
-
-    def delete_processed_images(self, condition: str) -> int:
-        """
-        Deletes images from the 'spracovane_obrazy' table based on a condition.
-
-        Parameters:
-        - condition (str): SQL WHERE condition.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__delete('spracovane_obrazy', condition)
-
-    def select_processed_images(self, condition: str = None) -> list:
-        """
-        Retrieves images from the 'spracovane_obrazy' table.
-
-        Parameters:
-        - condition (str, optional): SQL WHERE condition.
-
-        Returns:
-        - list: List of user records.
-        """
-        return self.__select('spracovane_obrazy', condition)
-
-    def update_processed_images(self, updates: dict, condition: str) -> int:
-        """
-        Updates specific columns in the 'spracovane_obrazy' table based on a condition.
-
-        Parameters:
-        - updates (dict): Dictionary of column-value pairs to update.
-        - condition (str): SQL WHERE condition to specify which rows to update.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__update('spracovane_obrazy', updates, condition)
-
-    # Devices
-    def insert_one_device(self, device: dict) -> int:
-        """
-        Inserts a single device into the 'zariadenia' table.
-
-        Parameters:
-        - device (dict): Dictionary containing device fields.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__insert('zariadenia', [device, ])
-
-    def insert_devices(self, devices: list) -> int:
-        """
-        Inserts multiple devices into the 'zariadenia' table.
-
-        Parameters:
-        - devices (list): List of device dictionaries.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__insert('zariadenia', devices)
-
-    def delete_devices(self, condition: str) -> int:
-        """
-        Deletes devices from the 'zariadenia' table based on a condition.
-
-        Parameters:
-        - condition (str): SQL WHERE condition.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__delete('zariadenia', condition)
-
-    def select_devices(self, condition: str = None) -> list:
-        """
-        Retrieves devices from the 'zariadenia' table.
-
-        Parameters:
-        - condition (str, optional): SQL WHERE condition.
-
-        Returns:
-        - list: List of user records.
-        """
-        return self.__select('zariadenia', condition)
-
-    def update_devices(self, updates: dict, condition: str) -> int:
-        """
-        Updates specific columns in the 'zariadenia' table based on a condition.
-
-        Parameters:
-        - updates (dict): Dictionary of column-value pairs to update.
-        - condition (str): SQL WHERE condition to specify which rows to update.
-
-        Returns:
-        - int: 0 on success, 1 on error.
-        """
-        return self.__update('zariadenia', updates, condition)
-
     def close(self) -> int:
         """
         Closes the database connection and cursor.
@@ -493,3 +198,569 @@ class Database:
         self.cursor.close()
         self.conn.close()
         return 0
+
+    # Users
+    def get_users(self, user_id: int = kw.V_NULL) -> list:
+        """
+        Database call returning merged tables for users, patients and roles
+        :param user_id: (int, optional) ID of user to get, keep empty to get all 
+        :return: (list) list of users
+        """
+        try:
+            sql = f"CALL get_user(%s)"
+            self.cursor.execute(sql, (user_id,))
+            return self.cursor.fetchall()
+        except mysql.connector.Error as err:
+            print(f"[SELECT ERROR] {err}")
+            self.close()
+            return []
+
+    def insert_one_user(self, user: dict) -> int:
+        """
+        Inserts a single user into the kw.TBL_USERS table.
+
+        Parameters:
+        - user (dict): Dictionary containing user fields.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        user = self._filter_dict(user, kw.KW_LIST_USER)
+        return self.__insert(kw.TBL_USERS, [user, ])
+
+    def insert_users(self, users: list) -> int:
+        """
+        Inserts multiple users into the kw.TBL_USERS table.
+
+        Parameters:
+        - users (list): List of user dictionaries.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        users = [self._filter_dict(user, kw.KW_LIST_USER) for user in users]
+        return self.__insert(kw.TBL_USERS, users)
+
+    def delete_users(self, condition: str) -> int:
+        """
+        Deletes users from the kw.TBL_USERS table based on a condition.
+
+        Parameters:
+        - condition (str): SQL WHERE condition.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        return self.__delete(kw.TBL_USERS, condition)
+
+    def select_users(self, condition: str = None) -> list:
+        """
+        Retrieves users from the kw.TBL_USERS table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - list: List of user records.
+        """
+        return self.__select(kw.TBL_USERS, condition)
+
+    def update_users(self, updates: dict, condition: str) -> int:
+        """
+        Updates specific columns in the kw.TBL_USERS table based on a condition.
+
+        Parameters:
+        - updates (dict): Dictionary of column-value pairs to update.
+        - condition (str): SQL WHERE condition to specify which rows to update.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        updates = self._filter_dict(updates, kw.KW_LIST_USER)
+        return self.__update(kw.TBL_USERS, updates, condition)
+
+    # Patients
+    def get_patients(self, patient_id: int = kw.V_NULL, medic_id: int = kw.V_NULL) -> list:
+        """
+        Fetches patient records using the stored procedure `get_patient`.
+
+        If `patient_id` is provided (not kw.V_NULL), fetches the specific patient by ID.
+        Otherwise, it fetches all patients whose `lekar_id` (medic/doctor ID) matches `medic_id`.
+
+        :parameter
+         - patient_id: ID of the specific patient to retrieve, or kw.V_NULL to ignore.
+         - medic_id: ID of the medic to filter patients by, if `patient_id` is kw.V_NULL.
+        :return: A list of tuples representing the fetched patient records.
+        """
+        try:
+            sql = "CALL get_patient(%s, %s)"
+            self.cursor.execute(sql, (patient_id, medic_id))
+            return self.cursor.fetchall()
+        except mysql.connector.Error as err:
+            print(f"[SELECT ERROR] {err}")
+            self.close()
+            return []
+
+    def insert_one_patient(self, patient: dict) -> int:
+        """
+        Inserts a single patient into the kw.TBL_PATIENTS table.
+
+        Parameters:
+        - patient (dict): Dictionary containing patient fields.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        patient = self._filter_dict(patient, kw.KW_LIST_PATIENT)
+        return self.__insert(kw.TBL_PATIENTS, [patient, ])
+
+    def insert_patients(self, patients: list) -> int:
+        """
+        Inserts multiple patients into the kw.TBL_PATIENTS table.
+
+        Parameters:
+        - patients (list): List of patient dictionaries.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        patients = [self._filter_dict(patient, kw.KW_LIST_PATIENT) for patient in patients]
+        return self.__insert(kw.TBL_PATIENTS, patients)
+
+    def delete_patients(self, condition: str) -> int:
+        """
+        Deletes patients from the kw.TBL_PATIENTS table based on a condition.
+
+        Parameters:
+        - condition (str): SQL WHERE condition.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        return self.__delete(kw.TBL_PATIENTS, condition)
+
+    def select_patients(self, condition: str = None) -> list:
+        """
+        Retrieves patients from the kw.TBL_PATIENTS table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - list: List of user records.
+        """
+        return self.__select(kw.TBL_PATIENTS, condition)
+
+    def update_patients(self, updates: dict, condition: str) -> int:
+        """
+        Updates specific columns in the kw.TBL_PATIENTS table based on a condition.
+
+        Parameters:
+        - updates (dict): Dictionary of column-value pairs to update.
+        - condition (str): SQL WHERE condition to specify which rows to update.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        updates = self._filter_dict(updates, kw.KW_LIST_PATIENT)
+        return self.__update(kw.TBL_PATIENTS, updates, condition)
+
+    # Original images
+    def insert_one_original_image(self, image: dict) -> int:
+        """
+        Inserts a single original image into the kw.TBL_IMAGES table.
+
+        Parameters:
+        - image (dict): Dictionary containing image fields.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        image = self._filter_dict(image, kw.KW_LIST_IMAGE)
+        return self.__insert(kw.TBL_IMAGES, [image, ])
+
+    def insert_original_images(self, images: list) -> int:
+        """
+        Inserts multiple images into the kw.TBL_IMAGES table.
+
+        Parameters:
+        - images (list): List of image dictionaries.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        images = [self._filter_dict(image, kw.KW_LIST_IMAGE) for image in images]
+        return self.__insert(kw.TBL_IMAGES, images)
+
+    def delete_original_images(self, condition: str) -> int:
+        """
+        Deletes images from the kw.TBL_IMAGES table based on a condition.
+
+        Parameters:
+        - condition (str): SQL WHERE condition.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        return self.__delete(kw.TBL_IMAGES, condition)
+
+    def select_original_images(self, condition: str = None) -> list:
+        """
+        Retrieves images from the kw.TBL_IMAGES table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - list: List of user records.
+        """
+        return self.__select(kw.TBL_IMAGES, condition)
+
+    def update_original_images(self, updates: dict, condition: str) -> int:
+        """
+        Updates specific columns in the kw.TBL_IMAGES table based on a condition.
+
+        Parameters:
+        - updates (dict): Dictionary of column-value pairs to update.
+        - condition (str): SQL WHERE condition to specify which rows to update.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        updates = self._filter_dict(updates, kw.KW_LIST_IMAGE)
+        return self.__update(kw.TBL_IMAGES, updates, condition)
+
+    # Processed images
+    def get_processed_images(self, image_id: int = kw.V_NULL) -> list:
+        """
+        Database call returning merged tables for processed images and methods
+        :param image_id: (int, optional) ID of image to get, keep empty to get all
+        :return: (list) list of processed images
+        """
+        try:
+            sql = f"CALL get_processed_image(%s)"
+            self.cursor.execute(sql, (image_id,))
+            return self.cursor.fetchall()
+        except mysql.connector.Error as err:
+            print(f"[SELECT ERROR] {err}")
+            self.close()
+            return []
+
+    def insert_one_processed_image(self, processed_image: dict) -> int:
+        """
+        Inserts a single processed image into the kw.TBL_PIMAGES table.
+
+        Parameters:
+        - processed image (dict): Dictionary containing image fields.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        processed_image = self._filter_dict(processed_image, kw.KW_LIST_PIMAGE)
+        return self.__insert(kw.TBL_PIMAGES, [processed_image, ])
+
+    def insert_processed_images(self, processed_images: list) -> int:
+        """
+        Inserts multiple images into the kw.TBL_PIMAGES table.
+
+        Parameters:
+        - processed_images (list): List of image dictionaries.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        processed_images = [self._filter_dict(image, kw.KW_LIST_PIMAGE) for image in processed_images]
+        return self.__insert(kw.TBL_PIMAGES, processed_images)
+
+    def delete_processed_images(self, condition: str) -> int:
+        """
+        Deletes images from the kw.TBL_PIMAGES table based on a condition.
+
+        Parameters:
+        - condition (str): SQL WHERE condition.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        return self.__delete(kw.TBL_PIMAGES, condition)
+
+    def select_processed_images(self, condition: str = None) -> list:
+        """
+        Retrieves images from the kw.TBL_PIMAGES table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - list: List of user records.
+        """
+        return self.__select(kw.TBL_PIMAGES, condition)
+
+    def update_processed_images(self, updates: dict, condition: str) -> int:
+        """
+        Updates specific columns in the kw.TBL_PIMAGES table based on a condition.
+
+        Parameters:
+        - updates (dict): Dictionary of column-value pairs to update.
+        - condition (str): SQL WHERE condition to specify which rows to update.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        updates = self._filter_dict(updates, kw.KW_LIST_PIMAGE)
+        return self.__update(kw.TBL_PIMAGES, updates, condition)
+
+    # Devices
+    def insert_one_device(self, device: dict) -> int:
+        """
+        Inserts a single device into the kw.TBL_DEVICES table.
+
+        Parameters:
+        - device (dict): Dictionary containing device fields.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        device = self._filter_dict(device, kw.KW_LIST_DEVICE)
+        return self.__insert(kw.TBL_DEVICES, [device, ])
+
+    def insert_devices(self, devices: list) -> int:
+        """
+        Inserts multiple devices into the kw.TBL_DEVICES table.
+
+        Parameters:
+        - devices (list): List of device dictionaries.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        devices = [self._filter_dict(device, kw.KW_LIST_DEVICE) for device in devices]
+        return self.__insert(kw.TBL_DEVICES, devices)
+
+    def delete_devices(self, condition: str) -> int:
+        """
+        Deletes devices from the kw.TBL_DEVICES table based on a condition.
+
+        Parameters:
+        - condition (str): SQL WHERE condition.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        return self.__delete(kw.TBL_DEVICES, condition)
+
+    def select_devices(self, condition: str = None) -> list:
+        """
+        Retrieves devices from the kw.TBL_DEVICES table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - list: List of user records.
+        """
+        return self.__select(kw.TBL_DEVICES, condition)
+
+    def update_devices(self, updates: dict, condition: str) -> int:
+        """
+        Updates specific columns in the kw.TBL_DEVICES table based on a condition.
+
+        Parameters:
+        - updates (dict): Dictionary of column-value pairs to update.
+        - condition (str): SQL WHERE condition to specify which rows to update.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        updates = self._filter_dict(updates, kw.KW_LIST_DEVICE)
+        return self.__update(kw.TBL_DEVICES, updates, condition)
+    
+    # Roles
+    def insert_one_role(self, role: dict) -> int:
+        """
+        Inserts a single role into the kw.TBL_ROLES table.
+
+        Parameters:
+        - role (dict): Dictionary containing role fields.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        role = self._filter_dict(role, kw.KW_LIST_ROLE)
+        return self.__insert(kw.TBL_ROLES, [role, ])
+
+    def insert_roles(self, roles: list) -> int:
+        """
+        Inserts multiple roles into the kw.TBL_ROLES table.
+
+        Parameters:
+        - roles (list): List of role dictionaries.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        roles = [self._filter_dict(role, kw.KW_LIST_ROLE) for role in roles]
+        return self.__insert(kw.TBL_ROLES, roles) 
+    
+    def delete_roles(self, condition: str) -> int:
+        """
+        Deletes roles from the kw.TBL_ROLES table based on a condition.
+
+        Parameters:
+        - condition (str): SQL WHERE condition.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        return self.__delete(kw.TBL_ROLES, condition)
+    
+    def select_roles(self, condition: str = None) -> list:
+        """
+        Retrieves roles from the kw.TBL_ROLES table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - list: List of user records.
+        """
+        return self.__select(kw.TBL_ROLES, condition)
+    
+    def update_roles(self, updates: dict, condition: str) -> int:
+        """
+        Updates specific columns in the kw.TBL_ROLES table based on a condition.
+
+        Parameters:
+        - updates (dict): Dictionary of column-value pairs to update.
+        - condition (str): SQL WHERE condition to specify which rows to update.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        updates = self._filter_dict(updates, kw.KW_LIST_ROLE)
+        return self.__update(kw.TBL_ROLES, updates, condition)    
+
+    @staticmethod
+    def get_role_by_id(role_id: int) -> [str, None]:
+        """
+        Retrieves a role name from the kw.TBL_ROLES table based on its ID.
+
+        Parameters:
+        - role_id (int): ID of the role to retrieve.
+
+        Returns:
+        - str: Role name if found, None otherwise.
+        """
+        db = Database()
+        try:
+            role = db.select_roles(f"{kw.KW_ROLE_ID} = {role_id}")[0]
+            db.close()
+            return role[kw.KW_ROLE_NAME]
+        except IndexError:
+            db.close()
+            return None
+
+    @staticmethod
+    def get_role_id_by_name(role_name: str) -> [int, None]:
+        """
+        Retrieves a role ID from the kw.TBL_ROLES table based on its name.
+
+        Parameters:
+        - role_name (str): Name of the role to retrieve.
+
+        Returns:
+        - int: Role ID if found, None otherwise.
+        """
+        db = Database()
+        try:
+            role = db.select_roles(f"{kw.KW_ROLE_NAME} = '{role_name}'")[0]
+            db.close()
+            return role[kw.KW_ROLE_ID]
+        except IndexError:
+            db.close()
+            return None
+
+    # Methods
+    def insert_one_method(self, method: dict) -> int:
+        """
+        Inserts a single method into the kw.TBL_METHODS table.
+
+        Parameters:
+        - method (dict): Dictionary containing method fields.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        method = self._filter_dict(method, kw.KW_LIST_METHOD)
+        return self.__insert(kw.TBL_METHODS, [method, ])
+
+    def insert_methods(self, methods: list) -> int:
+        """
+        Inserts multiple methods into the kw.TBL_METHODS table.
+
+        Parameters:
+        - methods (list): List of method dictionaries.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        methods = [self._filter_dict(method, kw.KW_LIST_METHOD) for method in methods]
+        return self.__insert(kw.TBL_METHODS, methods)
+
+    def delete_methods(self, condition: str) -> int:
+        """
+        Deletes methods from the kw.TBL_METHODS table based on a condition.
+
+        Parameters:
+        - condition (str): SQL WHERE condition.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        return self.__delete(kw.TBL_METHODS, condition)
+
+    def select_methods(self, condition: str = None) -> list:
+        """
+        Retrieves methods from the kw.TBL_METHODS table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - list: List of user records.
+        """
+        return self.__select(kw.TBL_METHODS, condition)
+
+    def update_methods(self, updates: dict, condition: str) -> int:
+        """
+        Updates specific columns in the kw.TBL_METHODS table based on a condition.
+
+        Parameters:
+        - updates (dict): Dictionary of column-value pairs to update.
+        - condition (str): SQL WHERE condition to specify which rows to update.
+
+        Returns:
+        - int: 0 on success, 1 on error.
+        """
+        updates = self._filter_dict(updates, kw.KW_LIST_METHOD)
+        return self.__update(kw.TBL_METHODS, updates, condition)
+
+    @staticmethod
+    def get_method_by_id(method_id: int) -> [str, None]:
+        """
+        Retrieves a method name from the kw.TBL_METHODS table based on its ID.
+
+        Parameters:
+        - method_id (int): ID of the method to retrieve.
+
+        Returns:
+        - str: Method name if found, None otherwise.
+        """
+        db = Database()
+        try:
+            method = db.select_methods(f"{kw.KW_METHOD_ID} = {method_id}")[0]
+            db.close()
+            return method[kw.KW_METHOD_NAME]
+        except IndexError:
+            db.close()
+            return None

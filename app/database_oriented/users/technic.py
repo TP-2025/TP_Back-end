@@ -43,3 +43,9 @@ class Technic(User):
             raise IndexError(f"User with given email '{technic_model.email}' not found")
 
         return exit_code, technic_model
+
+    def get_medics(self):
+        return self._myself_model.get_medics()
+
+    def get_original_images(self):
+        return self._myself_model.get_original_images()

@@ -45,6 +45,102 @@ class Admin(User):
 
         return exit_code, admin_model
 
+    @staticmethod
+    def get_technics():
+        db = Database()
+        role_id = Database.get_role_id_by_name(kw.ROLE_TECHNIC)
+        found_technics = db.select_users(f"{kw.KW_USER_ROLE_ID} = {role_id}")
+        db.close()
+        simplified = []
+        for medic in found_technics:
+            try:
+                simplified.append({
+                    kw.KW_USER_ID: medic[kw.KW_USER_ID],
+                    kw.KW_USER_SEX: medic[kw.KW_USER_SEX],
+                    kw.KW_USER_YEAR_OF_BIRTH: medic[kw.KW_USER_YEAR_OF_BIRTH],
+                })
+            except KeyError:
+                continue
+        # TODO: make return simplified if needed
+        return found_technics
+
+    @staticmethod
+    def get_patients():
+        db = Database()
+        found_patients = db.get_patients()
+        db.close()
+        simplified = []
+        for patient in found_patients:
+            try:
+                simplified.append({
+                    kw.KW_PATIENT_ID: patient[kw.KW_USER_ID],
+                    kw.KW_USER_SEX: patient[kw.KW_USER_SEX],
+                    kw.KW_USER_YEAR_OF_BIRTH: patient[kw.KW_USER_YEAR_OF_BIRTH],
+                })
+            except KeyError:
+                continue
+        return simplified
+
+    @staticmethod
+    def get_medics():
+        db = Database()
+        role_id = Database.get_role_id_by_name(kw.ROLE_MEDIC)
+        found_medics = db.select_users(f"{kw.KW_USER_ROLE_ID} = {role_id}")
+        db.close()
+        simplified = []
+        for medic in found_medics:
+            try:
+                simplified.append({
+                    kw.KW_USER_ID: medic[kw.KW_USER_ID],
+                    kw.KW_USER_SEX: medic[kw.KW_USER_SEX],
+                    kw.KW_USER_YEAR_OF_BIRTH: medic[kw.KW_USER_YEAR_OF_BIRTH],
+                })
+            except KeyError:
+                continue
+        # TODO: make return simplified if needed
+        return found_medics
+
+    @staticmethod
+    def get_admins():
+        db = Database()
+        role_id = Database.get_role_id_by_name(kw.ROLE_ADMIN)
+        found_admins = db.select_users(f"{kw.KW_USER_ROLE_ID} = {role_id}")
+        db.close()
+        simplified = []
+        for admin in found_admins:
+            try:
+                simplified.append({
+                    kw.KW_USER_ID: admin[kw.KW_USER_ID],
+                    kw.KW_USER_SEX: admin[kw.KW_USER_SEX],
+                    kw.KW_USER_YEAR_OF_BIRTH: admin[kw.KW_USER_YEAR_OF_BIRTH],
+                })
+            except KeyError:
+                continue
+
+        # TODO: make return simplified if needed
+        return found_admins
+
+    @staticmethod
+    def get_original_images(sql_where: str = ""):
+        db = Database()
+        found_original_images = db.select_original_images(sql_where)
+        db.close()
+        # TODO: make return simplified if needed
+        return found_original_images
+
+    @staticmethod
+    def get_processed_images(sql_where: str = ""):
+        db = Database()
+        found_processed_images = db.select_processed_images(sql_where)
+        db.close()
+        # TODO: make return simplified if needed
+        return found_processed_images
+
+
+
+
+
+
     def is_allowed_to_add_users(self, target_role: str) -> bool:
         """
         Checks if user is allowed to add users of given role (admin can add any user)
@@ -54,10 +150,9 @@ class Admin(User):
         """
         return True
 
-    def is_change_of_rights_allowed(self, user: ModelUser, rights: int) -> bool:
+    def is_change_of_rights_allowed(self, rights: int) -> bool:
         """
         Function checks if user is allowed to change rights
-        :param user: (app.models.user.User)
         :param rights:
         :return: (bool) True, admin can change rights
         """

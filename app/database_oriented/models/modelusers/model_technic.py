@@ -6,8 +6,8 @@ import app.database_oriented.keywords as kw
 
 
 class ModelTechnic(ModelUser):
-    def __init__(self, ID: int, name: str, surname: str, rights: int, role_id: int):
-        super().__init__(ID, name, surname, rights, role_id)
+    def __init__(self, ID: int, name: str, surname: str, rights: int, role_id: int, **kwargs):
+        super().__init__(ID, name, surname, rights, role_id, **kwargs)
 
     def get_medics(self):
         # TODO: Needs rework and implementation about storing relation between medic and technics
@@ -23,9 +23,9 @@ class ModelTechnic(ModelUser):
         for image in found_original_images:
             try:
                 simplified.append({
-                    "id": image[kw.KW_USER_ID],
-                    "name": image[kw.KW_USER_NAME],
-                    "surname": image[kw.KW_USER_SURNAME],
+                    "id": image[kw.KW_IMAGE_ID],
+                    # "name": image[kw.KW_USER_NAME],
+                    # "surname": image[kw.KW_USER_SURNAME],
                 })
             except KeyError:
                 continue

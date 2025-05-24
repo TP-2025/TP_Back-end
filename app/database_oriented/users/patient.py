@@ -1,3 +1,5 @@
+from time import sleep
+
 from app.database_oriented.database import Database
 from app.database_oriented.models.modelusers.model_patient import ModelPatient
 from app.database_oriented.models.modelusers.model_user import ModelUser
@@ -49,12 +51,18 @@ class Patient(User):
             raise IndexError(f"User with given email '{patient_model.email}' not found")
         exit_code |= db.insert_one_patient(all_data)
         found = db.select_patients(f"{kw.KW_PATIENT_USER_ID} = {patient_model.ID}")
-        try:
-            patient_model.patient_id = found[0][kw.KW_PATIENT_ID]
-            db.close()
-        except IndexError:
-            db.close()
-            raise IndexError(f"Patient with given ID '{patient_model.ID}' not found")
+        try_again = 3
+        while try_again > 0:
+            try:
+                patient_model.patient_id = found[0][kw.KW_PATIENT_ID]
+                db.close()
+                break
+            except IndexError:
+                sleep(0.5)
+                try_again -= 1
+                if try_again == 0:
+                    db.close()
+                    raise IndexError(f"Patient with given ID '{patient_model.ID}' not found")
 
         return exit_code, patient_model
 

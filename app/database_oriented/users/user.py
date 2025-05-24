@@ -1,5 +1,6 @@
 from app.database_oriented.database import Database
 from app.database_oriented.exitcodes_errors import ExitCodes, InvalidTargetRoleError, UserNotFoundError
+from app.database_oriented.models.modelimages.model_processed_image import ModelProcessedImage
 from app.database_oriented.models.modelusers.model_patient import ModelPatient
 from app.database_oriented.models.modelusers.model_user import ModelUser
 import app.database_oriented.keywords as kw
@@ -86,6 +87,35 @@ class User:
             raise InvalidTargetRoleError("Invalid role")
 
         return exit_code
+
+    @staticmethod
+    def send_original_image_for_processing(image_id: int, additional_data: dict, wrapped: Database) -> (int, ModelProcessedImage):
+        if wrapped is None:
+            db = Database()
+        else:
+            db = wrapped
+
+        try:
+            oimage = db.select_original_images(f"{kw.KW_IMAGE_ID} = {image_id}")[0]
+        except IndexError:
+            raise IndexError(f"Original image with given ID '{image_id}' not found")
+
+        all_data = {**additional_data, kw.KW_PIMAGE_ID: kw.V_EMPTY_INT,
+                    kw.KW_PIMAGE_OIMAGE_ID: image_id, kw.KW_PIMAGE_EYE: oimage[kw.KW_IMAGE_EYE]}
+
+        if wrapped is None:
+            db.close()
+
+        return ModelProcessedImage.add_processed_image(all_data)
+
+    @staticmethod
+    def send_bulk_original_images_for_processing(image_ids: list, additional_data: dict) -> int:
+        db = Database()
+        success = ExitCodes.SUCCESS
+        for image_id in image_ids:
+            success |= User.send_original_image_for_processing(image_id, additional_data, db)[0]
+        db.close()
+        return success
 
     def get_rights(self) -> dict:
         """
@@ -252,201 +282,28 @@ class User:
             db.close()
             raise PermissionError("Not allowed to change rights")
 
-    # def update_my_user_info(self, data: dict) -> int:
-    #     """
-    #     Function updates user info in database (only fot oneself)
-    #     :param data: (dict) data to update (email, full name)
-    #     :return: exit code (0 if success)
-    #     """
-    #     data_to_update = {
-    #         key: value for key, value in data.items() if key in [kw.KW_USER_EMAIL, kw.KW_USER_FULL_NAME]
-    #     }
-    #     db = Database()
-    #     exit_code = db.update_users(data_to_update, f"{kw.KW_USER_ID} = {self.ID}")
-    #     db.close()
-    #     return exit_code
-    #
-    # def update_my_password(self, hashed_password: str) -> int:
-    #     """
-    #     Function updates password in database (only for oneself)
-    #     :param hashed_password: (str) new hashed password
-    #     :return: (int) 0 if success
-    #     """
-    #     db = Database()
-    #     exit_code = db.update_users({kw.KW_USER_HASHED_PASSWORD: hashed_password}, f"{kw.KW_USER_ID} = {self.ID}")
-    #     db.close()
-    #     return exit_code
+    def update_my_info(self, data: dict) -> int:
+        """
+        Function updates user info in database (only fot oneself)
+        :param data: (dict) data to update (email, full name)
+        :return: exit code (0 if success)
+        """
+        for key in data.keys():
+            if key in (kw.KW_USER_HASHED_PASSWORD,):
+                data.pop(key)
 
-    # def search_patients(self, condition: str, medicID: int, simplified: bool = True) -> list:
-    #     """
-    #     Searches in database for patients using SQL WHERE condition
-    #     :parameter
-    #      - condition: (str) SQL WHERE condition
-    #      - medicID: (int) ID of medic to filter the patients.
-    #         If -1, no filtering (usable with ALLOWED_TO_SEE_ALL_PATIENTS)
-    #      - simplified: (bool) if True, returns simplified list
-    #     :return: (list) list of patients
-    #     """
-    #     db = Database()
-    #     if not (self.rights & kw.ALLOWED_TO_SEE_ALL_PATIENTS):
-    #         condition = f"{ModelPatient.KW_MEDIC_ID} = {medicID}" + ("" if condition == "" else " AND ") + condition
-    #     found_patients = db.select_patients(condition)
-    #     db.close()
-    #     if simplified:
-    #         simplified_list = []
-    #         for patient in found_patients:
-    #             try:
-    #                 simplified_list.append({
-    #                     "id": patient[ModelPatient.KW_USER_ID],
-    #                     "name": patient[ModelPatient.KW_NAME],
-    #                     "surname": patient[ModelPatient.KW_SURNAME],
-    #                 })
-    #             except KeyError:
-    #                 continue
-    #         return simplified_list
-    #     else:
-    #         return found_patients
+        db = Database()
+        exit_code = db.update_users(data, f"{kw.KW_USER_ID} = {self.ID}")
+        db.close()
+        return exit_code
 
-    # def select_one_patient(self, patientID: int, safe_mode: bool = False) -> [ModelPatient, None]:
-    #     """
-    #     Selects patient with a given ID from database
-    #     :parameter
-    #      - patientID:
-    #      - safe_mode: (bool) if True, returns only non-sensitive data
-    #     :return: [Patient, None] returns selected Patient object or None
-    #     """
-    #     db = Database()
-    #     condition = f"{ModelPatient.KW_USER_ID} = {patientID}"
-    #     if not (self.rights & kw.ALLOWED_TO_SEE_ALL_PATIENTS):
-    #         condition = f"{ModelPatient.KW_MEDIC_ID} = {self.ID} AND " + condition
-    #
-    #     found = db.select_patients(condition)
-    #     db.close()
-    #     try:
-    #         self.selected_patient = ModelPatient.constructor(found[0], safe_mode)
-    #         return self.selected_patient
-    #     except IndexError:
-    #         return None
-
-    # def add_patient_info(self, patient_userID: int, year_of_birth: int = -1, sex: str = "Unknown",
-    #                      diagnosis: str = "Unknown", medical_notes: str = "", medic_id: int = -1) -> int:
-    #     """
-    #     Adds patient data to database, needs to be called immediately after adding patient user to database by add_user
-    #     :parameter
-    #      - patient_userID: (int) ID of patient user
-    #      - year_of_birth: (int, optional) year of birth of patient
-    #      - sex: (str, optional) sex of patient
-    #      - diagnosis: (str, optional) diagnosis of patient
-    #      - medical_notes: (str, optional) medical notes of patient
-    #      - medic_id: (int, optional) ID of medic user
-    #     :return: (int) 0 on success, 1 if user is not allowed to add patients
-    #     :raises
-    #      - UserNotFoundError: if patient is not a user
-    #      - PermissionError: if user is not allowed to add patients
-    #     """
-    #
-    #     if self.rights & kw.ALLOWED_TO_ADD_PATIENTS:
-    #         db = Database()
-    #         try:
-    #             user = db.select_users(f"{kw.KW_USER_ID} = {patient_userID}")[0]
-    #         except IndexError:
-    #             raise UserNotFoundError("Patient is not a user")
-    #
-    #         name = user[ModelPatient.KW_NAME]
-    #         surname = user[ModelPatient.KW_SURNAME]
-    #
-    #         exit_code = db.insert_one_patient({
-    #             ModelPatient.KW_USER_ID: patient_userID,
-    #             ModelPatient.KW_NAME: name,
-    #             ModelPatient.KW_SURNAME: surname,
-    #             ModelPatient.KW_USER_YEAR_OF_BIRTH: year_of_birth,
-    #             ModelPatient.KW_USER_SEX: sex,
-    #             ModelPatient.KW_PATIENT_DIAGNOSIS: diagnosis,
-    #             ModelPatient.KW_MEDICAL_NOTES: medical_notes,
-    #             ModelPatient.KW_MEDIC_ID: medic_id
-    #         })
-    #         db.close()
-    #         return exit_code
-    #     else:
-    #         raise PermissionError("Not allowed to add patients")
-
-    # def add_patient(self, email: str, name: str, surname: str, year_of_birth: int = -1, sex: str = "Unknown",
-    #                 diagnosis: str = "Unknown", medical_notes: str = "", medic_id: int = -1):
-    #     """
-    #     Adds patient to database and adds patient info
-    #     :parameter
-    #      - email: (str) email of patient
-    #      - name: (str) name of patient
-    #      - surname: (str) surname of patient
-    #      - year_of_birth: (int, optional) year of birth of patient
-    #      - sex: (str, optional) sex of patient
-    #      - diagnosis: (str, optional) diagnosis of patient
-    #      - medical_notes: (str, optional) medical notes of patient
-    #      - medic_id: (int, optional) ID of medic user
-    #     :return: (int) Exitcode
-    #     :raises
-    #      - UserNotFoundError: if patient is not a user
-    #      - PermissionError: if user is not allowed to add patients
-    #     """
-    #     if self.is_allowed_to_add_users(kw.ROLE_PATIENT):
-    #         generated_password = "AAAAAAAAAAAAAAAAA"  # TODO: Needs implementing generation of hashed password
-    #         exitcode = self.add_user(email, f"{name} {surname}", generated_password, "AAAAAAAAAAAAAA")
-    #         try:
-    #             patient = self.search_users(f"{kw.KW_USER_EMAIL} = {email}", False, False)[0]
-    #         except IndexError:
-    #             return exitcode | ExitCodes.DATABASE_SELECT_ERROR
-    #         self.add_patient_info(patient[kw.KW_USER_ID], year_of_birth, sex, diagnosis, medical_notes, medic_id)
-    #     else:
-    #         raise PermissionError("Not allowed to add patients")
-
-    # def delete_selected_patient(self) -> int:
-    #     """
-    #     Deletes selected patient from database, including images
-    #     :return: (int) 0 on success, 1 if user is not allowed to delete patients
-    #     :raise PermissionError: if user is not allowed to delete patients
-    #     """
-    #     if self.rights & kw.ALLOWED_TO_DELETE_PATIENTS and self.selected_patient is not None:
-    #         condition = f"{ModelPatient.KW_USER_ID} = {self.selected_patient.ID}"
-    #         db = Database()
-    #         exit_code = db.delete_patients(condition)
-    #         exit_code |= db.delete_processed_images(condition)
-    #         exit_code |= db.delete_original_images(condition)
-    #         db.close()
-    #         self.selected_patient = None
-    #         return exit_code
-    #     else:
-    #         raise PermissionError("Not allowed to delete patients")
-
-    # def search_users(self, condition: str, simplified: bool = True, filtered: bool = True) -> list:
-    #     db = Database()
-    #     found_users = db.select_users(condition)
-    #     db.close()
-    #
-    #     if filtered:
-    #         for user in found_users:
-    #             if user[kw.KW_USER_ID] in self.associated_users:
-    #                 continue
-    #             elif user[kw.KW_USER_ROLE] == kw.ROLE_ADMIN and self.rights & kw.ALLOWED_TO_SEE_ALL_ADMINS:
-    #                 found_users.remove(user)
-    #             elif user[kw.KW_USER_ROLE] == kw.ROLE_MEDIC and self.rights & kw.ALLOWED_TO_SEE_ALL_MEDICS:
-    #                 found_users.remove(user)
-    #             elif user[
-    #                 kw.KW_USER_ROLE] == kw.ROLE_TECHNIC and self.rights & kw.ALLOWED_TO_SEE_ALL_TECHNICS:
-    #                 found_users.remove(user)
-    #             elif user[
-    #                 kw.KW_USER_ROLE] == kw.ROLE_PATIENT and self.rights & kw.ALLOWED_TO_SEE_ALL_PATIENTS:
-    #                 found_users.remove(user)
-    #
-    #     if simplified:
-    #         simplified_list = []
-    #         for user in found_users:
-    #             try:
-    #                 simplified_list.append({
-    #                     "id": user[kw.KW_USER_ID],
-    #                     "fullname": user[kw.KW_USER_FULL_NAME],
-    #                 })
-    #             except KeyError:
-    #                 continue
-    #         return simplified_list
-    #     else:
-    #         return found_users
+    def update_my_password(self, hashed_password: str) -> int:
+        """
+        Function updates password in database (only for oneself)
+        :param hashed_password: (str) new hashed password
+        :return: (int) 0 if success
+        """
+        db = Database()
+        exit_code = db.update_users({kw.KW_USER_HASHED_PASSWORD: hashed_password}, f"{kw.KW_USER_ID} = {self.ID}")
+        db.close()
+        return exit_code

@@ -26,6 +26,7 @@ class ModelOriginalImage:
         :param data: (dict) original image data from database
         :param safe_mode: (bool) loads only non-sensitive information
         :return: (ModelOriginalImage) new ModelOriginalImage object
+        :raise KeyError: if original image doesn't have ID or patient ID
         """
         try:
             ID = data[kw.KW_IMAGE_ID]
@@ -73,6 +74,10 @@ class ModelOriginalImage:
     def add_original_image(image_data: dict) -> (int, "ModelOriginalImage"):
         """
         Adds original image to database
+        :param image_data: (dict) dictionary of original image data
+        :returns: (int, ModelOriginalImage) exit code and original image object
+        :raise
+        - KeyError: if original image doesn't have path or patient ID
         """
         required_keys = (kw.KW_IMAGE_PATH, kw.KW_IMAGE_PATIENT_ID)
         for key in required_keys:
@@ -91,6 +96,13 @@ class ModelOriginalImage:
 
     @classmethod
     def get_original_image_by_id(cls, image_id: int, safe_mode: bool = False) -> "ModelOriginalImage":
+        """
+        Gets original image by ID
+        :param image_id: (int) ID of original image to get
+        :param safe_mode: (bool) loads only non-sensitive information
+        :return: (ModelOriginalImage) object of ModelOriginalImage
+        :raise IndexError: if original image with given ID doesn't exist
+        """
         db = Database()
         found = db.select_original_images(f"id = {image_id}")
         db.close()
@@ -100,19 +112,28 @@ class ModelOriginalImage:
             raise IndexError(f"Original image with given ID '{image_id}' not found")
 
     @staticmethod
-    def delete_original_image_by_id(image_id: int):
+    def delete_original_image_by_id(image_id: int) -> int:
+        """
+        Deletes original image by ID
+        :param image_id: (int) ID of original image to delete
+        :return: (int) exit code
+        """
         db = Database()
         exit_code = db.delete_original_images(f"{kw.KW_IMAGE_ID} = {image_id}")
         db.close()
         return exit_code
 
-    def delete_me(self):
+    def delete_me(self) -> int:
+        """
+        Deletes original image from database
+        :return: (int) exit code
+        """
         return self.delete_original_image_by_id(self.ID)
 
     @staticmethod
-    def search_original_images(condition: str, simplified: bool = True):
+    def search_original_images(condition: str, simplified: bool = True) -> list:
         """
-        Searches for original images connected to this patient
+        Searches for original images in database for which MySQL condition is true
         :parameter
          - condition: (str) SQL WHERE condition
          - simplified: (bool) if True, returns simplified list
@@ -126,8 +147,8 @@ class ModelOriginalImage:
                 try:
                     simplified_list.append({
                         kw.KW_IMAGE_ID: image[kw.KW_IMAGE_ID],
-                        kw.KW_IMAGE_EYE: image.get(kw.KW_IMAGE_EYE, "nezadané")
-                        # TODO: add count of processed images associated
+                        kw.KW_IMAGE_EYE: image.get(kw.KW_IMAGE_EYE, "nezadané"),
+                        "processed_images": db.count_processed_images(f"{kw.KW_PIMAGE_OIMAGE_ID} = {image[kw.KW_IMAGE_ID]}")
                     })
                 except KeyError:
                     continue
@@ -140,7 +161,8 @@ class ModelOriginalImage:
     def send_image_for_processing(self, additional_data: dict) -> (int, "ModelProcessedImage"):
         """
         Sends original image for processing
-        :param methodID: (int) ID of method that should be used for processing
+        :param additional_data: (dict) dictionary of additional data for processed image
+        :return: (int, ModelProcessedImage) exit code and processed image object
         """
         all_data = {**additional_data, kw.KW_PIMAGE_ID: kw.V_EMPTY_INT,
                     kw.KW_PIMAGE_OIMAGE_ID: self.ID, kw.KW_PIMAGE_EYE: self.eye}
@@ -149,12 +171,19 @@ class ModelOriginalImage:
 
         return exit_code, model_pimage
 
-    def search_processed_images(self, condition: str, simplified: bool = True):
+    def get_processed_images(self) -> list[dict]:
         """
-        Searches for processed images connected to this patient
+        Gets all processed images connected to this original image
+        :return: (list[dict]) list of processed images
+        """
+        return ModelProcessedImage.get_processed_images(oimage_id=self.ID)
+
+    def search_processed_images(self, condition: str, simplified: bool = True) -> list[dict]:
+        """
+        Searches for processed images connected to this patient for which MySQL condition is true
         :param condition: (str) SQL WHERE condition
         :param simplified: (bool) if True, returns simplified list
-        :return: (list) list of processed images
+        :return: (list[dict]) list of processed images
         """
         condition = f"{kw.KW_PIMAGE_OIMAGE_ID} = {self.ID}" + ("" if condition == "" else " AND ") + condition
         return ModelProcessedImage.search_processed_images(condition, simplified)
@@ -171,12 +200,12 @@ class ModelOriginalImage:
         except IndexError:
             return None
 
-    def delete_all_connected_processed_images(self):
+    def delete_all_connected_processed_images(self) -> int:
         """
         Deletes all processed images connected to this original image from the database.
 
         Returns:
-        - int: 0 on success, 1 on error
+        - int: exit code
         """
         db = Database()
         condition = f"{kw.KW_PIMAGE_OIMAGE_ID} = {self.ID}"
@@ -193,6 +222,6 @@ class ModelOriginalImage:
         - imageID (int): ID of the image to be deleted
 
         Returns:
-        - int: 0 on success, 1 on error
+        - int: Exit code
         """
         return ModelProcessedImage.delete_processed_image_by_id(processed_imageID)

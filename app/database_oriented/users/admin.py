@@ -37,7 +37,7 @@ class Admin(User):
         exit_code = db.insert_one_user(all_data)
         try:
             found = User.get_user_basic_info_by_email(admin_model.email)
-            admin_model.ID = found["id"]
+            admin_model.ID = found[kw.KW_USER_ID]
             db.close()
         except IndexError:
             db.close()

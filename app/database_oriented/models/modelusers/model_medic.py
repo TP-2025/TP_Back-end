@@ -1,4 +1,6 @@
 from app.database_oriented.database import Database
+from app.database_oriented.exitcodes_errors import ExitCodes
+from app.database_oriented.models.modelimages.model_processed_image import ModelProcessedImage
 from app.database_oriented.models.modelusers.model_patient import ModelPatient
 from app.database_oriented.models.modelusers.model_user import ModelUser
 
@@ -46,7 +48,7 @@ class ModelMedic(ModelUser):
                 patient_model = ModelPatient.constructor(patient)
             except TypeError:
                 continue
-            found_processed_images.extend(patient_model.search_processed_images("", False))
+            found_processed_images.extend(patient_model.get_processed_images())
         db.close()
 
         return found_processed_images

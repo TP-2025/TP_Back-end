@@ -80,6 +80,7 @@ KW_IMAGE_TECHNIC_ID = "technik_id"
 # Keywords for accessing processed image data in database
 KW_PIMAGE_ID = "id"  # TODO: check dictionary for overwrite with procedure get_processed_image
 KW_PIMAGE_OIMAGE_ID = "originalny_obraz_id"
+KW_PIMAGE_PATIENT_ID = "pacient_id"
 KW_PIMAGE_USED_METHOD_ID = "metoda"
 KW_PIMAGE_USED_METHOD_NAME = "metoda_meno"  # TODO: check dictionary for overwrite with procedure get_processed_image
 KW_PIMAGE_RESULTS = "vystup"

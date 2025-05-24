@@ -12,6 +12,7 @@ Uses:
  - success: int = database_object.insert_[users, patients, original_images, processed_images, devices](data: list[dict, ])
  - success: int = database_object.delete_[users, patients, original_images, processed_images, devices](SQL_condition: str)
  - found: list = database_object.select_[users, patients, original_images, processed_images, devices](SQL_condition: str)
+ - count: int = database_object.count_[users, patients, original_images, processed_images, devices](SQL_condition: str)
  
 For example:
  - success = database_object.insert_one_patient({'meno': 'Mike', 'priezvisko': 'Wazowski', 'datum_narodenia': '2001-01-02', 'lekar_id': 1})
@@ -34,6 +35,10 @@ class Database:
         Attributes:
             self.conn: Holds the connection object if successful, otherwise None.
             self.cursor: Holds the cursor object if successful, otherwise None.
+
+        :raise
+        - ConnectionError: If the connection to the database fails.
+        - Exception: For any other unexpected errors during setup.
         """
 
         # defining/creating connection with database
@@ -103,7 +108,7 @@ class Database:
         - data (list): A list of dictionaries, where each dictionary represents a row to insert.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
         """
         try:
             placeholders = ', '.join(['%s'] * len(data[0]))
@@ -112,7 +117,7 @@ class Database:
             values = [tuple(d.values()) for d in data]
             self.cursor.executemany(sql, values)
             self.conn.commit()
-            return 0
+            return ExitCodes.SUCCESS
         except mysql.connector.Error as err:
             print(f"[INSERT ERROR] {err}")
             self.close()
@@ -131,8 +136,8 @@ class Database:
         - condition (str): SQL condition for selecting rows to delete.
 
         Returns:
-        - int: 0 on success, 1 on error.
-            """
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_DELETE_ERROR on error.
+        """
         try:
             sql = f"DELETE FROM {table} WHERE {condition}"
             self.cursor.execute(sql)
@@ -165,6 +170,29 @@ class Database:
             self.close()
             return []
 
+    def __count(self, table: str, condition: str = None) -> int:
+        """
+        Counts rows in a specified table.
+
+        Parameters:
+        - table (str): The name of the table to count rows from.
+        - condition (str, optional): SQL WHERE condition to filter which rows to count.
+
+        Returns:
+        - int: The number of rows matching the condition, or -1 on error.
+        """
+        try:
+            sql = f"SELECT COUNT(*) AS count FROM {table}"
+            if condition:
+                sql += f" WHERE {condition}"
+            self.cursor.execute(sql)
+            result = self.cursor.fetchone()
+            return result['count'] if result else 0
+        except mysql.connector.Error as err:
+            print(f"[COUNT ERROR] {err}")
+            self.close()
+            return -1
+
     def __update(self, table: str, updates: dict, condition: str) -> int:
         """
         Updates specific columns in a table based on a condition.
@@ -175,7 +203,7 @@ class Database:
         - condition (str): SQL WHERE condition to specify which rows to update.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_UPDATE_ERROR on error.
         """
         try:
             set_clause = ', '.join([f"{col} = %s" for col in updates.keys()])
@@ -202,9 +230,9 @@ class Database:
     # Users
     def get_users(self, user_id: int = kw.V_NULL) -> list:
         """
-        Database call returning merged tables for users, patients and roles
-        :param user_id: (int, optional) ID of user to get, keep empty to get all 
-        :return: (list) list of users
+        Database call returning merged tables for users and roles
+        :param user_id: (int, optional) ID of user to get, keep empty to get all users
+        :return: (list) list of found users
         """
         try:
             sql = f"CALL get_user(%s)"
@@ -223,7 +251,7 @@ class Database:
         - user (dict): Dictionary containing user fields.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
         """
         user = self._filter_dict(user, kw.KW_LIST_USER)
         return self.__insert(kw.TBL_USERS, [user, ])
@@ -236,7 +264,7 @@ class Database:
         - users (list): List of user dictionaries.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
         """
         users = [self._filter_dict(user, kw.KW_LIST_USER) for user in users]
         return self.__insert(kw.TBL_USERS, users)
@@ -249,7 +277,7 @@ class Database:
         - condition (str): SQL WHERE condition.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_DELETE_ERROR on error.
         """
         return self.__delete(kw.TBL_USERS, condition)
 
@@ -274,10 +302,22 @@ class Database:
         - condition (str): SQL WHERE condition to specify which rows to update.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_UPDATE_ERROR on error.
         """
         updates = self._filter_dict(updates, kw.KW_LIST_USER)
         return self.__update(kw.TBL_USERS, updates, condition)
+
+    def count_users(self, condition: str = None) -> int:
+        """
+        Counts the number of users in the kw.TBL_USERS table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - int: The number of users, or -1 on error.
+        """
+        return self.__count(kw.TBL_USERS, condition)
 
     # Patients
     def get_patients(self, patient_id: int = kw.V_NULL, medic_id: int = kw.V_NULL) -> list:
@@ -309,7 +349,7 @@ class Database:
         - patient (dict): Dictionary containing patient fields.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
         """
         patient = self._filter_dict(patient, kw.KW_LIST_PATIENT)
         return self.__insert(kw.TBL_PATIENTS, [patient, ])
@@ -322,7 +362,7 @@ class Database:
         - patients (list): List of patient dictionaries.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
         """
         patients = [self._filter_dict(patient, kw.KW_LIST_PATIENT) for patient in patients]
         return self.__insert(kw.TBL_PATIENTS, patients)
@@ -335,7 +375,7 @@ class Database:
         - condition (str): SQL WHERE condition.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_DELETE_ERROR on error.
         """
         return self.__delete(kw.TBL_PATIENTS, condition)
 
@@ -347,7 +387,7 @@ class Database:
         - condition (str, optional): SQL WHERE condition.
 
         Returns:
-        - list: List of user records.
+        - list: List of patient records.
         """
         return self.__select(kw.TBL_PATIENTS, condition)
 
@@ -360,10 +400,22 @@ class Database:
         - condition (str): SQL WHERE condition to specify which rows to update.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_UPDATE_ERROR on error.
         """
         updates = self._filter_dict(updates, kw.KW_LIST_PATIENT)
         return self.__update(kw.TBL_PATIENTS, updates, condition)
+
+    def count_patients(self, condition: str = None) -> int:
+        """
+        Counts the number of patients in the kw.TBL_PATIENTS table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_COUNT_ERROR on error.
+        """
+        return self.__count(kw.TBL_PATIENTS, condition)
 
     # Original images
     def insert_one_original_image(self, image: dict) -> int:
@@ -374,7 +426,7 @@ class Database:
         - image (dict): Dictionary containing image fields.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
         """
         image = self._filter_dict(image, kw.KW_LIST_IMAGE)
         return self.__insert(kw.TBL_IMAGES, [image, ])
@@ -387,7 +439,7 @@ class Database:
         - images (list): List of image dictionaries.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
         """
         images = [self._filter_dict(image, kw.KW_LIST_IMAGE) for image in images]
         return self.__insert(kw.TBL_IMAGES, images)
@@ -400,7 +452,7 @@ class Database:
         - condition (str): SQL WHERE condition.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_DELETE_ERROR on error.
         """
         return self.__delete(kw.TBL_IMAGES, condition)
 
@@ -412,7 +464,7 @@ class Database:
         - condition (str, optional): SQL WHERE condition.
 
         Returns:
-        - list: List of user records.
+        - list: List of original image records.
         """
         return self.__select(kw.TBL_IMAGES, condition)
 
@@ -425,21 +477,40 @@ class Database:
         - condition (str): SQL WHERE condition to specify which rows to update.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_UPDATE_ERROR on error.
         """
         updates = self._filter_dict(updates, kw.KW_LIST_IMAGE)
         return self.__update(kw.TBL_IMAGES, updates, condition)
 
-    # Processed images
-    def get_processed_images(self, image_id: int = kw.V_NULL) -> list:
+    def count_original_images(self, condition: str = None) -> int:
         """
-        Database call returning merged tables for processed images and methods
-        :param image_id: (int, optional) ID of image to get, keep empty to get all
-        :return: (list) list of processed images
+        Counts the number of images in the kw.TBL_IMAGES table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - int: The number of images, or -1 on error.
+        """
+        return self.__count(kw.TBL_IMAGES, condition)
+
+    # Processed images
+    def get_processed_images(self, image_id: int = kw.V_NULL, oimage_id: int = kw.V_NULL, patient_id: int = kw.V_NULL) -> list:
+        """
+        Database query to retrieve processed images from the kw.TBL_PIMAGES table. If none parameter filled, returns
+        all processed images.
+
+        Parameters:
+        - image_id (int, optional): ID of the image to retrieve (first to check).
+        - oimage_id (int, optional): ID of the original image to retrieve (second to check).
+        - patient_id (int, optional): ID of the patient to retrieve (third to check).
+
+        Returns:
+        - list: List of processed image records.
         """
         try:
-            sql = f"CALL get_processed_image(%s)"
-            self.cursor.execute(sql, (image_id,))
+            sql = f"CALL get_processed_image(%s, %s, %s)"
+            self.cursor.execute(sql, (image_id, oimage_id, patient_id))
             return self.cursor.fetchall()
         except mysql.connector.Error as err:
             print(f"[SELECT ERROR] {err}")
@@ -454,7 +525,7 @@ class Database:
         - processed image (dict): Dictionary containing image fields.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
         """
         processed_image = self._filter_dict(processed_image, kw.KW_LIST_PIMAGE)
         return self.__insert(kw.TBL_PIMAGES, [processed_image, ])
@@ -467,7 +538,7 @@ class Database:
         - processed_images (list): List of image dictionaries.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
         """
         processed_images = [self._filter_dict(image, kw.KW_LIST_PIMAGE) for image in processed_images]
         return self.__insert(kw.TBL_PIMAGES, processed_images)
@@ -480,7 +551,7 @@ class Database:
         - condition (str): SQL WHERE condition.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_DELETE_ERROR on error.
         """
         return self.__delete(kw.TBL_PIMAGES, condition)
 
@@ -492,7 +563,7 @@ class Database:
         - condition (str, optional): SQL WHERE condition.
 
         Returns:
-        - list: List of user records.
+        - list: List of processed image records.
         """
         return self.__select(kw.TBL_PIMAGES, condition)
 
@@ -505,10 +576,22 @@ class Database:
         - condition (str): SQL WHERE condition to specify which rows to update.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_UPDATE_ERROR on error.
         """
         updates = self._filter_dict(updates, kw.KW_LIST_PIMAGE)
         return self.__update(kw.TBL_PIMAGES, updates, condition)
+
+    def count_processed_images(self, condition: str = None) -> int:
+        """
+        Counts the number of images in the kw.TBL_PIMAGES table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - int: The number of images, or -1 on error.
+        """
+        return self.__count(kw.TBL_PIMAGES, condition)
 
     # Devices
     def insert_one_device(self, device: dict) -> int:
@@ -519,7 +602,7 @@ class Database:
         - device (dict): Dictionary containing device fields.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
         """
         device = self._filter_dict(device, kw.KW_LIST_DEVICE)
         return self.__insert(kw.TBL_DEVICES, [device, ])
@@ -532,7 +615,7 @@ class Database:
         - devices (list): List of device dictionaries.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
         """
         devices = [self._filter_dict(device, kw.KW_LIST_DEVICE) for device in devices]
         return self.__insert(kw.TBL_DEVICES, devices)
@@ -545,7 +628,7 @@ class Database:
         - condition (str): SQL WHERE condition.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_DELETE_ERROR on error.
         """
         return self.__delete(kw.TBL_DEVICES, condition)
 
@@ -557,7 +640,7 @@ class Database:
         - condition (str, optional): SQL WHERE condition.
 
         Returns:
-        - list: List of user records.
+        - list: List of device records.
         """
         return self.__select(kw.TBL_DEVICES, condition)
 
@@ -570,10 +653,22 @@ class Database:
         - condition (str): SQL WHERE condition to specify which rows to update.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_UPDATE_ERROR on error.
         """
         updates = self._filter_dict(updates, kw.KW_LIST_DEVICE)
         return self.__update(kw.TBL_DEVICES, updates, condition)
+
+    def count_devices(self, condition: str = None) -> int:
+        """
+        Counts the number of devices in the kw.TBL_DEVICES table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - int: The number of devices, or -1 on error.
+        """
+        return self.__count(kw.TBL_DEVICES, condition)
     
     # Roles
     def insert_one_role(self, role: dict) -> int:
@@ -584,7 +679,7 @@ class Database:
         - role (dict): Dictionary containing role fields.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
         """
         role = self._filter_dict(role, kw.KW_LIST_ROLE)
         return self.__insert(kw.TBL_ROLES, [role, ])
@@ -597,7 +692,7 @@ class Database:
         - roles (list): List of role dictionaries.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
         """
         roles = [self._filter_dict(role, kw.KW_LIST_ROLE) for role in roles]
         return self.__insert(kw.TBL_ROLES, roles) 
@@ -610,7 +705,7 @@ class Database:
         - condition (str): SQL WHERE condition.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_DELETE_ERROR on error.
         """
         return self.__delete(kw.TBL_ROLES, condition)
     
@@ -635,10 +730,22 @@ class Database:
         - condition (str): SQL WHERE condition to specify which rows to update.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_UPDATE_ERROR on error.
         """
         updates = self._filter_dict(updates, kw.KW_LIST_ROLE)
-        return self.__update(kw.TBL_ROLES, updates, condition)    
+        return self.__update(kw.TBL_ROLES, updates, condition)
+
+    def count_roles(self, condition: str = None) -> int:
+        """
+        Counts the number of roles in the kw.TBL_ROLES table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - int: The number of roles, or -1 on error.
+        """
+        return self.__count(kw.TBL_ROLES, condition)
 
     @staticmethod
     def get_role_by_id(role_id: int) -> [str, None]:
@@ -689,7 +796,7 @@ class Database:
         - method (dict): Dictionary containing method fields.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
         """
         method = self._filter_dict(method, kw.KW_LIST_METHOD)
         return self.__insert(kw.TBL_METHODS, [method, ])
@@ -702,7 +809,7 @@ class Database:
         - methods (list): List of method dictionaries.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
         """
         methods = [self._filter_dict(method, kw.KW_LIST_METHOD) for method in methods]
         return self.__insert(kw.TBL_METHODS, methods)
@@ -715,7 +822,7 @@ class Database:
         - condition (str): SQL WHERE condition.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_DELETE_ERROR on error.
         """
         return self.__delete(kw.TBL_METHODS, condition)
 
@@ -727,7 +834,7 @@ class Database:
         - condition (str, optional): SQL WHERE condition.
 
         Returns:
-        - list: List of user records.
+        - list: List of method records.
         """
         return self.__select(kw.TBL_METHODS, condition)
 
@@ -740,7 +847,7 @@ class Database:
         - condition (str): SQL WHERE condition to specify which rows to update.
 
         Returns:
-        - int: 0 on success, 1 on error.
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_UPDATE_ERROR on error.
         """
         updates = self._filter_dict(updates, kw.KW_LIST_METHOD)
         return self.__update(kw.TBL_METHODS, updates, condition)
@@ -764,3 +871,15 @@ class Database:
         except IndexError:
             db.close()
             return None
+
+    def count_methods(self, condition: str = None) -> int:
+        """
+        Counts the number of methods in the kw.TBL_METHODS table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - int: The number of methods, or -1 on error.
+        """
+        return self.__count(kw.TBL_METHODS, condition)

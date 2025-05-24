@@ -2,7 +2,6 @@ from time import sleep
 
 from app.database_oriented.database import Database
 from app.database_oriented.models.modelusers.model_patient import ModelPatient
-from app.database_oriented.models.modelusers.model_user import ModelUser
 from app.database_oriented.users.user import User
 import app.database_oriented.keywords as kw
 
@@ -161,21 +160,21 @@ class Patient(User):
     #     """
     #     raise PermissionError("Patients are not allowed to add patient info of other patients")
 
-    # def update_my_patient_info(self, data: dict) -> int:
-    #     """
-    #     Function updates patient data in database, runnable only for oneself
-    #     :param data: (dict) dictionary of data to update
-    #     :return: (int) exit code
-    #     """
-    #     db = Database()
-    #     data_to_update = {
-    #         key: value for key, value in data.items() if key in (
-    #             ModelPatient.KW_NAME, ModelPatient.KW_SURNAME, ModelPatient.KW_MEDIC_ID, ModelPatient.KW_USER_YEAR_OF_BIRTH,
-    #             ModelPatient.KW_USER_SEX, ModelPatient.KW_PATIENT_DIAGNOSIS, ModelPatient.KW_MEDICAL_NOTES)
-    #     }
-    #     exit_code = db.update_patients(data_to_update, f"{ModelPatient.KW_USER_ID} = {self.ID}")
-    #     db.close()
-    #     return exit_code
+    def update_my_info(self, data: dict) -> int:
+        """
+        Function updates patient data in database, runnable only for oneself
+        :param data: (dict) dictionary of data to update
+        :return: (int) exit code
+        """
+        for key in data.keys():
+            if key in (kw.KW_USER_HASHED_PASSWORD,):
+                data.pop(key)
+
+        db = Database()
+        exit_code = db.update_patients(data, f"{kw.KW_PATIENT_USER_ID} = {self.ID}")
+        exit_code |= db.update_users(data, f"{kw.KW_USER_ID} = {self.ID}")
+        db.close()
+        return exit_code
 
     def delete_selected_patient(self, patient: ModelPatient) -> int:
         """
@@ -191,3 +190,11 @@ class Patient(User):
 
     def select_user_by_id(self, userID: int) -> int:
         raise PermissionError("Not allowed to change selected user (self)")
+
+    @staticmethod
+    def send_bulk_original_images_for_processing(image_ids: list, additional_data: dict) -> int:
+        raise PermissionError("Patients are not allowed to send bulk original images for processing")
+
+    @staticmethod
+    def send_original_image_for_processing(image_id: int, additional_data: dict, wrapped: Database = None) -> int:
+        raise PermissionError("Patients are not allowed to send original image for processing")

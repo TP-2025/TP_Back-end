@@ -36,7 +36,7 @@ class Technic(User):
         exit_code = db.insert_one_user(all_data)
         try:
             found = User.get_user_basic_info_by_email(technic_model.email)
-            technic_model.ID = found["id"]
+            technic_model.ID = found[kw.KW_USER_ID]
             db.close()
         except IndexError:
             db.close()
@@ -49,3 +49,11 @@ class Technic(User):
 
     def get_original_images(self):
         return self._myself_model.get_original_images()
+
+    @staticmethod
+    def send_bulk_original_images_for_processing(image_ids: list, additional_data: dict) -> int:
+        raise PermissionError("Technics are not allowed to send bulk original images for processing")
+
+    @staticmethod
+    def send_original_image_for_processing(image_id: int, additional_data: dict, wrapped: Database = None) -> int:
+        raise PermissionError("Technics are not allowed to send original image for processing")

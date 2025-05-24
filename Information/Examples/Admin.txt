@@ -1,0 +1,26 @@
+Prihlásenie používate¾a:
+  user_admin_info = User.get_user_basic_info_by_email("duck@tape.sheet")
+  user_admin = Admin(user_admin_info["id"], "Gama123")
+
+Pridanie iného užívate¾a (príklad):
+  user_admin.add_user(kw.ROLE_PATIENT, {
+      kw.KW_USER_NAME: "John",
+      kw.KW_USER_SURNAME: "Doe",
+      kw.KW_USER_EMAIL: "john.doe@example",
+      kw.KW_USER_YEAR_OF_BIRTH: 1999,
+      kw.KW_PATIENT_DATE_OF_BIRTH: "61.12.",
+      kw.KW_PATIENT_MEDIC_ID: 3, kw.KW_USER_SEX: "muž",
+  }, "Gama123")
+
+
+user_admin.get_admins()  # Vráti zoznam užívate¾ov s rola_id = 4 (Admin)
+
+user_admin.get_patients()  # Vráti zoznam užívate¾ov s rola_id = 1 (Pacient)
+
+user_admin.get_medics()  # Vráti zoznam užívate¾ov s rola_id = 3 (Medik)
+
+user_admin.get_technics()  # Vráti zoznam užívate¾ov s rola_id = 2 (Technik)
+
+user_admin.get_original_images(sql_where: str = "")  # Vráti zoznam originálnych obrazov (všetky by default)
+
+user_admin.get_processed_images(sql_where: str = "")  # Vráti zoznam spracovaných obrazov (všetky by default)

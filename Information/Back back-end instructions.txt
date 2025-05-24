@@ -16,7 +16,7 @@ Prihlásenie:
     - možné používať metódy
     
 
-Vytvorenie užívateľa:
+Vytvorenie užívateľa: (ak už je mail v databáze, hádže IndexError)
     - nutné byť prihlásený (označované ďalej ako self)
     - self.add_user(target_role: str, user_data: dict, hashed_password: str)
         -> nastaví self.selected_user na daného užívateľa

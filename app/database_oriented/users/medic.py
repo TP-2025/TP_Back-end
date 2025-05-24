@@ -47,43 +47,13 @@ class Medic(User):
         return exit_code, medic_model
 
     def get_technics(self):
-        # TODO: Needs rework and implementation about storing relation between medic and technics
-        # Many to many relation
-        return []
+        return self._myself_model.get_technics()
 
     def get_patients(self) -> list[dict,]:
-        db = Database()
-        if self.rights & kw.ALLOWED_TO_SEE_ALL_PATIENTS:
-            found_patients = db.get_patients()
-        else:
-            found_patients = db.get_patients(medic_id=self.ID)
-        db.close()
-        return found_patients
+        return self._myself_model.get_patients()
 
     def get_original_images(self):
-        found_original_images = []
-        db = Database()
-        for patient in self.get_patients():
-            try:
-                patient["safe_mode"] = True
-                patient_model = ModelPatient.constructor(patient)
-            except TypeError:
-                continue
-            found_original_images.extend(patient_model.search_original_images("", False))
-        db.close()
-
-        return found_original_images
+        return self._myself_model.get_original_images()
 
     def get_processed_images(self):
-        found_processed_images = []
-        db = Database()
-        for patient in self.get_patients():
-            try:
-                patient["safe_mode"] = True
-                patient_model = ModelPatient.constructor(patient)
-            except TypeError:
-                continue
-            found_processed_images.extend(patient_model.search_processed_images("", False))
-        db.close()
-
-        return found_processed_images
+        return self._myself_model.get_processed_images()

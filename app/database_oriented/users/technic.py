@@ -52,9 +52,46 @@ class Technic(User):
 
         return exit_code, technic_model
 
-    def get_medics(self):
+#    def get_medics(self):
         # TODO: implement this
-        return self._myself_model.get_medics()
+#        return self._myself_model.get_medics()
+
+# TODO: Zmeniť podľa potreby
+    @staticmethod
+    def get_medics() -> list[dict]:
+        """
+        Returns list of medics
+        :return: (list[dict]) list of medics
+        """
+        db = Database()
+        role_id = Database.get_role_id_by_name(kw.ROLE_MEDIC)
+        found_medics = db.select_users(f"{kw.KW_USER_ROLE_ID} = {role_id}")
+        db.close()
+        simplified = []
+        for medic in found_medics:
+            try:
+                simplified.append({
+                    kw.KW_USER_ID: medic[kw.KW_USER_ID],
+                    kw.KW_USER_SEX: medic[kw.KW_USER_SEX],
+                    kw.KW_USER_YEAR_OF_BIRTH: medic[kw.KW_USER_YEAR_OF_BIRTH],
+                })
+            except KeyError:
+                continue
+        # TODO: make return simplified if needed
+        return found_medics
+
+# TODO: Treba zistiť ako má vidieť technik pacientov, kvôli pridávaniu fotiek
+    @staticmethod
+    def get_patients() -> list[dict]:
+        """
+        Returns list of patients
+        :return: (list[dict]) list of patients
+        """
+        db = Database()
+        found_patients = db.get_patients()
+        db.close()
+
+        return found_patients
 
     def get_original_images(self) -> list[dict]:
         """

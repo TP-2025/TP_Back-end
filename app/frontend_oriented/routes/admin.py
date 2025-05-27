@@ -4,11 +4,12 @@
 
 
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Body
 from fastapi import Response
 
 from app.database_oriented.exitcodes_errors import InvalidTargetRoleError
-from app.frontend_oriented.schemas.admin import TechnicOut, GetTechnicResponse
+from app.database_oriented.users import patient
+from app.frontend_oriented.schemas.admin import TechnicOut, GetTechnicResponse, PatientOut, GetPatientResponse
 from app.frontend_oriented.schemas.auth import GetAdminResponse, AdminOut, CreateUser, DeleteUser, DoctorOut, GetDoctorResponse
 from app.frontend_oriented.services.token_service import TokenService
 from app.frontend_oriented.services.auth import authenticate_user, check_user
@@ -74,6 +75,27 @@ def get_doctors(response: Response, current_user=Depends(check_user)):
     print(user_responses)
 
     return GetDoctorResponse(doctors=user_responses)
+
+@router.get("/getPatients", response_model= GetPatientResponse)
+def get_patients(response: Response, current_user=Depends(check_user)):
+    if not isinstance(current_user, Admin):
+        raise HTTPException(status_code=403, detail= "Fuck off")
+    patients = current_user.get_patients()
+
+    user_responses = [
+        PatientOut(
+            name= "**",
+            surname= "**",
+            email= "aa@aa.com",                      #získať tieto údaje z databázy
+            id= patient["pacient_id"],
+            year_of_birth= patient["rok_narodenia"], #Vrátiť celý dátum
+            sex= patient["pohlavie"]
+    )
+    for patient in patients
+    ]
+
+    return GetPatientResponse(patients=user_responses)
+
 
 @router.get("/getTechnics", response_model=GetTechnicResponse)
 def get_technics(response: Response, current_user=Depends(check_user)):
@@ -179,7 +201,7 @@ def create_technic(user_data: CreateUser, current_user=Depends(check_user)):
         #raise HTTPException(status_code=500, detail=f"Failed to create doctor: {str(e)}")
 
 @router.delete("/deleteUser")
-def delete_doctor(user_data: DeleteUser, current_user=Depends(check_user)):
+def delete_doctor(user_data: DeleteUser = Body(...), current_user=Depends(check_user)):
     if not isinstance(current_user, Admin):
         raise HTTPException(status_code=403, detail= "Fuck off")
 

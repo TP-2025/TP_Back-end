@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # Import route modulov
 from app.frontend_oriented.routes import auth  # napr. auth.py v routes priečinku
 from app.frontend_oriented.routes import admin
+from app.frontend_oriented.routes import user
 
 app = FastAPI()
 
@@ -20,3 +21,5 @@ app.add_middleware(
 # Pripojenie route-ov
 app.include_router(auth.router, prefix="/api", tags=["auth"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+
+app.include_router(user.router, prefix="/api/user", tags=["user"])

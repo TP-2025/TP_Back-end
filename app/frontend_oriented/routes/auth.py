@@ -2,13 +2,17 @@ from os import access
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi import Response
+from pydantic import EmailStr
 
 from app.frontend_oriented.schemas.auth import LoginRequest, LoginResponse, UserOut, ChangePassword
-from app.frontend_oriented.services.auth import authenticate_user, check_user, hash_password
+from app.frontend_oriented.services.auth import authenticate_user, check_user, hash_password, create_password
 from app.frontend_oriented.services.token_service import TokenService
+from app.frontend_oriented.services.email import EmailService
 
 router = APIRouter()
 token_service = TokenService()
+EmailService = EmailService()
+
 
 @router.post("/login", response_model=LoginResponse)
 def login(request: LoginRequest, response: Response):
@@ -53,4 +57,21 @@ def change_password(request: ChangePassword, current_user=Depends(check_user)):
 
 #@router.post("/changeInformation")
 #def change_information(current_user=Depends(check_user)):
+
+
+@router.post("/forgotPassword")
+def reset_password(user_data: EmailStr):
+    password = create_password(7)
+    hashed_password = hash_password(password)
+
+    try:
+        EmailService.send_password_email(str(user_data.email), user_data.name, password)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
+
+
+
+    err = current_user.update_my_password(hashed_password)
+    if err != 0:
+        raise HTTPException(status_code= 500, detail="server error")
 

@@ -53,9 +53,33 @@ class Medic(User):
 
         return exit_code, medic_model
 
-    def get_technics(self):
-        # TODO: Needs rework and implementation about storing relation between medic and technics
-        return self._myself_model.get_technics()
+#    def get_technics(self):
+#        # TODO: Needs rework and implementation about storing relation between medic and technics
+#        return self._myself_model.get_technics()
+
+# TODO: Len na testovanie, neskôr potrebné upraviť podľa požiadaviek
+    @staticmethod
+    def get_technics() -> list[dict]:
+        """
+        Returns list of technics
+        :return: (list[dict]) list of technics
+        """
+        db = Database()
+        role_id = Database.get_role_id_by_name(kw.ROLE_TECHNIC)
+        found_technics = db.select_users(f"{kw.KW_USER_ROLE_ID} = {role_id}")
+        db.close()
+        simplified = []
+        for medic in found_technics:
+            try:
+                simplified.append({
+                    kw.KW_USER_ID: medic[kw.KW_USER_ID],
+                    kw.KW_USER_SEX: medic[kw.KW_USER_SEX],
+                    kw.KW_USER_YEAR_OF_BIRTH: medic[kw.KW_USER_YEAR_OF_BIRTH],
+                })
+            except KeyError:
+                continue
+        # TODO: make return simplified if needed
+        return found_technics
 
     def get_patients(self) -> list[dict]:
         """

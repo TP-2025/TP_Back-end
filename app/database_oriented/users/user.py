@@ -222,8 +222,8 @@ class User:
             self.selected_user = None
             return exit_code
         else:
-            raise PermissionError(f"Not allowed to delete users with role {self.selected_user.role}")
-
+            #raise PermissionError(f"Not allowed to delete users with role {self.selected_user.role}")
+            raise PermissionError(f"Not allowed to delete users with role")
     def delete_user_by_id(self, userID: int) -> int:
         """
         Deletes user with a given ID from database

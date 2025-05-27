@@ -85,5 +85,6 @@ class ModelUser:
     def delete_me(self):
         """Deletes user from database"""
         db = Database()
-        db.delete_users(f"{kw.KW_USER_ID} = {self.ID}")
-        db.close()
+        exit_code = db.delete_users(f"{kw.KW_USER_ID} = {self.ID}")
+        exit_code |= db.close()
+        return exit_code

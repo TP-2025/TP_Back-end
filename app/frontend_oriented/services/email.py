@@ -13,8 +13,8 @@ class EmailService:
         self.smptUser = settings.SMTP_USER
         self.smptPassword = settings.SMTP_PASSWORD
         self.senderEmail = settings.SENDER_EMAIL
-        self.passwordSubject = settings.PASSWORD_SUBJECT
-        self.verifySubject = settings.VERIFY_SUBJECT
+        self.passwordSubject = "Nové heslo"
+        self.verifySubject = "dcba"
 
     def send_email(self, to: str, subject: str, body: str):
         try:

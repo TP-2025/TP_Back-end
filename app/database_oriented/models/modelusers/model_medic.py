@@ -1,10 +1,7 @@
+import app.database_oriented.keywords as kw
 from app.database_oriented.database import Database
-from app.database_oriented.exitcodes_errors import ExitCodes
-from app.database_oriented.models.modelimages.model_processed_image import ModelProcessedImage
 from app.database_oriented.models.modelusers.model_patient import ModelPatient
 from app.database_oriented.models.modelusers.model_user import ModelUser
-
-import app.database_oriented.keywords as kw
 
 
 class ModelMedic(ModelUser):
@@ -64,4 +61,3 @@ class ModelMedic(ModelUser):
         db.close()
 
         return found_processed_images
-

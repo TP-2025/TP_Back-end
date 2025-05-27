@@ -1,8 +1,6 @@
-import random
-
+import app.database_oriented.keywords as kw
 from app.database_oriented.database import Database
 from app.database_oriented.models.modelimages.model_processed_image import ModelProcessedImage
-import app.database_oriented.keywords as kw
 
 
 class ModelOriginalImage:
@@ -148,7 +146,8 @@ class ModelOriginalImage:
                     simplified_list.append({
                         kw.KW_IMAGE_ID: image[kw.KW_IMAGE_ID],
                         kw.KW_IMAGE_EYE: image.get(kw.KW_IMAGE_EYE, "nezadané"),
-                        "processed_images": db.count_processed_images(f"{kw.KW_PIMAGE_OIMAGE_ID} = {image[kw.KW_IMAGE_ID]}")
+                        "processed_images": db.count_processed_images(
+                            f"{kw.KW_PIMAGE_OIMAGE_ID} = {image[kw.KW_IMAGE_ID]}")
                     })
                 except KeyError:
                     continue
@@ -225,3 +224,28 @@ class ModelOriginalImage:
         - int: Exit code
         """
         return ModelProcessedImage.delete_processed_image_by_id(processed_imageID)
+
+    @staticmethod
+    def update_original_image_data_by_id(imageID: int, data: dict) -> int:
+        """
+        Updates original image with a given ID in the database.
+
+        Parameters:
+        - imageID (int): ID of the image to be updated
+        - data (dict): dictionary of data to be updated
+
+        Returns:
+        - int: Exit code
+        """
+        db = Database()
+        exit_code = db.update_original_images(data, f"{kw.KW_IMAGE_ID} = {imageID}")
+        db.close()
+        return exit_code
+
+    def update_me(self, data: dict) -> int:
+        """
+        Updates original image data in the database
+        :param data: (dict) dictionary of image data to update
+        :return: (int) exit code
+        """
+        return self.update_original_image_data_by_id(self.ID, data)

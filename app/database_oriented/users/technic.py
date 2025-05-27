@@ -1,7 +1,7 @@
+import app.database_oriented.keywords as kw
 from app.database_oriented.database import Database
 from app.database_oriented.models.modelusers.model_technic import ModelTechnic
 from app.database_oriented.users.user import User
-import app.database_oriented.keywords as kw
 
 
 class Technic(User):

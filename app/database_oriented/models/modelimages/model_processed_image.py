@@ -33,7 +33,8 @@ class ModelProcessedImage:
             patient_id = data[kw.KW_PIMAGE_PATIENT_ID]
             used_method_id = data[kw.KW_PIMAGE_USED_METHOD_ID]
         except KeyError:
-            raise KeyError("Processed image doesn't have ID, original image ID, patient ID or used method ID, it cannot be constructed")
+            raise KeyError(
+                "Processed image doesn't have ID, original image ID, patient ID or used method ID, it cannot be constructed")
 
         results = data.get(kw.KW_PIMAGE_RESULTS, kw.V_EMPTY_DICT)
         path_to_image = data.get(kw.KW_PIMAGE_PATH, kw.V_EMPTY_STRING)
@@ -188,3 +189,25 @@ class ModelProcessedImage:
         found = db.get_processed_images(pimage_id, oimage_id, patient_id)
         db.close()
         return found
+
+    @staticmethod
+    def update_processed_image_data_by_id(image_id: int, data: dict) -> int:
+        """
+        Updates processed image data by ID
+        :param image_id: (int) processed image ID
+        :param data: (dict) dictionary of processed image data
+        :return: (int) exit code
+        """
+        db = Database()
+        exit_code = db.update_processed_images(data, f"{kw.KW_PIMAGE_ID} = {image_id}")
+        db.close()
+
+        return exit_code
+
+    def update_me(self, data: dict) -> int:
+        """
+        Updates processed image
+        :param data: (dict) dictionary of processed image new data
+        :return: (int) exit code
+        """
+        return self.update_processed_image_data_by_id(self.ID, data)

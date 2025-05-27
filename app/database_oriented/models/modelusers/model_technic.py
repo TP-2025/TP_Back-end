@@ -1,8 +1,6 @@
-from app.database_oriented.database import Database
-from app.database_oriented.models.modelusers.model_patient import ModelPatient
-from app.database_oriented.models.modelusers.model_user import ModelUser
-
 import app.database_oriented.keywords as kw
+from app.database_oriented.database import Database
+from app.database_oriented.models.modelusers.model_user import ModelUser
 
 
 class ModelTechnic(ModelUser):
@@ -36,4 +34,3 @@ class ModelTechnic(ModelUser):
             except KeyError:
                 continue
         return simplified
-

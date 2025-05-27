@@ -1,8 +1,8 @@
+import app.database_oriented.keywords as kw
 from app.database_oriented.database import Database
 from app.database_oriented.models.modelusers.model_medic import ModelMedic
 from app.database_oriented.models.modelusers.model_user import ModelUser
 from app.database_oriented.users.user import User
-import app.database_oriented.keywords as kw
 
 
 class Medic(User):
@@ -35,7 +35,8 @@ class Medic(User):
                 raise KeyError(f"Key '{key}' is required for medic creation")
 
         user_data[kw.KW_USER_ROLE_ID] = Database.get_role_id_by_name(kw.ROLE_MEDIC)
-        user_data[kw.KW_USER_RIGHTS] = kw.ALLOWED_TO_ADD_TECHNICS | kw.ALLOWED_TO_ADD_PATIENTS  # | kw.ALLOWED_TO_DELETE_PATIENT
+        user_data[
+            kw.KW_USER_RIGHTS] = kw.ALLOWED_TO_ADD_TECHNICS | kw.ALLOWED_TO_ADD_PATIENTS  # | kw.ALLOWED_TO_DELETE_PATIENT
         user_data[kw.KW_USER_ID] = kw.V_EMPTY_INT
         medic_model = ModelMedic.constructor(user_data)
         all_data = medic_model.deconstructor()

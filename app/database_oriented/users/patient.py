@@ -1,9 +1,9 @@
 from time import sleep
 
+import app.database_oriented.keywords as kw
 from app.database_oriented.database import Database
 from app.database_oriented.models.modelusers.model_patient import ModelPatient
 from app.database_oriented.users.user import User
-import app.database_oriented.keywords as kw
 
 
 class Patient(User):

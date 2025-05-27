@@ -1,10 +1,9 @@
+import app.database_oriented.keywords as kw
 from app.database_oriented.database import Database
 from app.database_oriented.exitcodes_errors import ExitCodes, InvalidTargetRoleError, UserNotFoundError
 from app.database_oriented.models.modelimages.model_processed_image import ModelProcessedImage
 from app.database_oriented.models.modelusers.model_patient import ModelPatient
 from app.database_oriented.models.modelusers.model_user import ModelUser
-import app.database_oriented.keywords as kw
-import app.database_oriented.users as users
 
 
 class User:
@@ -91,7 +90,8 @@ class User:
         return exit_code
 
     @staticmethod
-    def send_original_image_for_processing(image_id: int, additional_data: dict, wrapped: Database) -> (int, ModelProcessedImage):
+    def send_original_image_for_processing(image_id: int, additional_data: dict, wrapped: Database) -> (
+    int, ModelProcessedImage):
         """
         Function sends original image for processing
         :param image_id: (int) image ID to send for processing
@@ -216,7 +216,7 @@ class User:
         if self.selected_user is None:
             raise UserNotFoundError("No user selected")
         elif (((self.rights & kw.ALLOWED_TO_DELETE_PATIENTS and self.selected_user.role_name == kw.ROLE_PATIENT) or
-              (self.rights & kw.ALLOWED_TO_DELETE_MEDICS and self.selected_user.role_name == kw.ROLE_MEDIC)) or
+               (self.rights & kw.ALLOWED_TO_DELETE_MEDICS and self.selected_user.role_name == kw.ROLE_MEDIC)) or
               (self.rights & kw.ALLOWED_TO_DELETE_TECHNICS and self.selected_user.role_name == kw.ROLE_TECHNIC)):
             exit_code = self.selected_user.delete_me()
             self.selected_user = None

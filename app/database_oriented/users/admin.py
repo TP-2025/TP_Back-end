@@ -1,7 +1,7 @@
+import app.database_oriented.keywords as kw
 from app.database_oriented.database import Database
 from app.database_oriented.models.modelusers.model_admin import ModelAdmin
 from app.database_oriented.users.user import User
-import app.database_oriented.keywords as kw
 
 
 class Admin(User):
@@ -88,7 +88,7 @@ class Admin(User):
         for patient in found_patients:
             try:
                 simplified.append({
-                    kw.KW_PATIENT_ID: patient[kw.KW_USER_ID],
+                    kw.KW_PATIENT_ID: patient[kw.KW_PATIENT_ID],
                     kw.KW_USER_SEX: patient[kw.KW_USER_SEX],
                     kw.KW_USER_YEAR_OF_BIRTH: patient[kw.KW_USER_YEAR_OF_BIRTH],
                 })

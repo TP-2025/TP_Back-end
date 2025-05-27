@@ -1,6 +1,5 @@
 import app.database_oriented.keywords as kw
 from app.database_oriented.database import Database
-from app.database_oriented.exitcodes_errors import ExitCodes
 
 
 class ModelUser:
@@ -82,8 +81,10 @@ class ModelUser:
         :param rights: (int) new rights of user in database"""
         self.rights = rights
 
-    def delete_me(self):
-        """Deletes user from database"""
+    def delete_me(self) -> int:
+        """Deletes user from database
+        :return: (int) exit code
+        """
         db = Database()
         exit_code = db.delete_users(f"{kw.KW_USER_ID} = {self.ID}")
         exit_code |= db.close()

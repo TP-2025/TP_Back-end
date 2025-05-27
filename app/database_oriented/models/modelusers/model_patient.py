@@ -1,9 +1,8 @@
+import app.database_oriented.keywords as kw
 from app.database_oriented.database import Database
 from app.database_oriented.exitcodes_errors import ExitCodes
 from app.database_oriented.models.modelimages.model_original_image import ModelOriginalImage
 from app.database_oriented.models.modelimages.model_processed_image import ModelProcessedImage
-import app.database_oriented.keywords as kw
-
 from app.database_oriented.models.modelusers.model_user import ModelUser
 
 
@@ -58,11 +57,11 @@ class ModelPatient(ModelUser):
         :return (dict): dictionary of patient data
         """
         deconstructed = {
-                         **super().deconstructor(),
-                         kw.KW_PATIENT_ID: self.patient_id,
-                         kw.KW_PATIENT_DATE_OF_BIRTH: self.date_of_birth,
-                         kw.KW_PATIENT_MEDIC_ID: self.medic_id
-                         }
+            **super().deconstructor(),
+            kw.KW_PATIENT_ID: self.patient_id,
+            kw.KW_PATIENT_DATE_OF_BIRTH: self.date_of_birth,
+            kw.KW_PATIENT_MEDIC_ID: self.medic_id
+        }
         if not self.safe_mode:
             deconstructed = {**deconstructed,
                              kw.KW_PATIENT_DIAGNOSIS: self.diagnosis,

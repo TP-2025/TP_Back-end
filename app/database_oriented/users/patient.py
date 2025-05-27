@@ -25,6 +25,14 @@ class Patient(User):
 
     @staticmethod
     def add_patient(user_data: dict, hashed_password: str) -> (int, ModelPatient):
+        """
+        Function adds patient to database
+        :param user_data: (dict) dictionary of user and patient data
+        :param hashed_password: (str) hashed password
+        :return: (int, ModelPatient) exit_code, patient model object
+        :raise: KeyError if patient doesn't have name, surname, email, medic id
+        :raise: IndexError if user was not successfully added to database
+        """
         required_keys = (kw.KW_USER_NAME, kw.KW_USER_SURNAME, kw.KW_USER_EMAIL, kw.KW_PATIENT_MEDIC_ID)
         for key in required_keys:
             if key not in user_data.keys():
@@ -105,11 +113,9 @@ class Patient(User):
     def add_user(self, role: str, user_data: dict, hashed_password: str) -> int:
         """
         Function adds user to database, for patient disabled
-        :param hashed_password:
-        :param email: (str) email of user
-        :param full_name: (str) full name of user in format "Priezvisko Meno"
-        :param hashed_password: (str) hashed password of user
         :param role: (str) role of user
+        :param user_data: (dict) dictionary of user data
+        :param hashed_password: (str) hashed password
         :return: (int) Exit code
         :raise: PermissionError
         """
@@ -185,16 +191,43 @@ class Patient(User):
         """
         raise PermissionError("Patients are not allowed to delete patients")
 
-    def select_patient_by_patient_id(self, patient_id):
+    def select_patient_by_patient_id(self, patient_id) -> [ModelPatient, None]:
+        """
+        Selects patient with a given ID from database
+        :param patient_id: (int) ID of patient to select
+        :return: [Patient, None] returns selected Patient object or None
+        :raise: PermissionError
+        """
         raise PermissionError("Not allowed to change selected user (self)")
 
     def select_user_by_id(self, userID: int) -> int:
+        """
+        Selects user with a given ID from database
+        :param userID: (int) ID of user to select
+        :return: (int) ExitCode
+        :raise: PermissionError
+        """
         raise PermissionError("Not allowed to change selected user (self)")
 
     @staticmethod
     def send_bulk_original_images_for_processing(image_ids: list, additional_data: dict) -> int:
+        """
+        Function sends bulk original images for processing
+        :param image_ids: (list) list of image IDs
+        :param additional_data: (dict) additional data
+        :return: (int) exit code
+        :raise: PermissionError
+        """
         raise PermissionError("Patients are not allowed to send bulk original images for processing")
 
     @staticmethod
     def send_original_image_for_processing(image_id: int, additional_data: dict, wrapped: Database = None) -> int:
+        """
+        Function sends original image for processing
+        :param image_id: (int) image ID
+        :param additional_data: (dict) additional data
+        :param wrapped: (Database) database object
+        :return: (int) exit code
+        :raise: PermissionError
+        """
         raise PermissionError("Patients are not allowed to send original image for processing")

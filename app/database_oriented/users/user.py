@@ -67,6 +67,8 @@ class User:
          - user_data: (dict) dictionary of user data
          - hashed_password: (str) hashed password of user
         :return: (int) ExitCodes
+        :raise: PermissionError - if user is not allowed to add users
+        :raise: InvalidTargetRoleError - if target role is invalid
         """
         if not self.is_allowed_to_add_users(role):
             raise PermissionError(f"Not allowed to add users with role {role}")
@@ -90,6 +92,14 @@ class User:
 
     @staticmethod
     def send_original_image_for_processing(image_id: int, additional_data: dict, wrapped: Database) -> (int, ModelProcessedImage):
+        """
+        Function sends original image for processing
+        :param image_id: (int) image ID to send for processing
+        :param additional_data: (dict) additional data needed to create processed image
+        :param wrapped: (Database, optional) database object to use more efficient approach
+        :return: (int) exit code
+        :raise: IndexError if original image not found
+        """
         if wrapped is None:
             db = Database()
         else:
@@ -110,6 +120,13 @@ class User:
 
     @staticmethod
     def send_bulk_original_images_for_processing(image_ids: list, additional_data: dict) -> int:
+        """
+        Function sends bulk original images for processing
+        :param image_ids: (list) list of image IDs
+        :param additional_data: (dict) additional data
+        :return: (int) exit code
+        :raise: PermissionError if user is not allowed to send bulk original images for processing
+        """
         db = Database()
         success = ExitCodes.SUCCESS
         for image_id in image_ids:
@@ -149,6 +166,7 @@ class User:
          - user: (app.models.user.User)
          - rights: (int) use flags kw.ALLOWED_TO_...
         :return: (bool) is user allowed to change rights for the target user?
+        :raise: UserNotFoundError if no user selected
         """
         if self.selected_user is None:
             raise UserNotFoundError("No user selected")
@@ -176,7 +194,12 @@ class User:
         else:
             return ExitCodes.USER_NOT_FOUND
 
-    def select_patient_by_patient_id(self, patient_id):
+    def select_patient_by_patient_id(self, patient_id) -> int:
+        """
+        Selects patient with a given ID from database
+        :param patient_id: (int) ID of patient to select
+        :return: (int) ExitCode
+        """
         self.selected_user = ModelPatient.get_patient_by_patient_id(patient_id)
         if self.selected_user is not None:
             return ExitCodes.SUCCESS
@@ -187,6 +210,8 @@ class User:
         """
         Deletes selected user from database
         :return: (int) ExitCode
+        :raise: UserNotFoundError if no user selected
+        :raise: PermissionError if user is not allowed to delete selected user
         """
         if self.selected_user is None:
             raise UserNotFoundError("No user selected")
@@ -199,18 +224,14 @@ class User:
         else:
             raise PermissionError(f"Not allowed to delete users with role {self.selected_user.role}")
 
-        # db = Database()
-        # exit_code = db.delete_users(condition)
-        # db.close()
-        # self.selected_user = None
-        # return exit_code
-
     def delete_user_by_id(self, userID: int) -> int:
         """
         Deletes user with a given ID from database
         :parameter
          - userID: (int) ID of user
         :return: (int) ExitCode
+        :raise: PermissionError if user is not allowed to delete selected user
+        :raise: UserNotFoundError if no user selected or user not found
         """
         exit_code = self.select_user_by_id(userID)
         exit_code |= self.delete_selected_user()
@@ -223,6 +244,8 @@ class User:
         :parameter
          - userID: (int) ID of user
         :return: (int) ExitCode
+        :raise: PermissionError if user is not allowed to delete selected user
+        :raise: UserNotFoundError if no user selected or user not found
         """
         exit_code = self.select_patient_by_patient_id(patient_ID)
         exit_code |= self.delete_selected_user()
@@ -237,11 +260,14 @@ class User:
          - deny_rights: (int) rights to deny, use flags kw.ALLOWED_TO_...
          - userID: (int) ID of user
         :return: (int) Exit code
+        :raise: UserNotFoundError if no user selected
+        :raise: PermissionError if user is not allowed to change rights
         """
         db = Database()
         try:
             user = db.select_users(f"{kw.KW_USER_ID} = {userID}")[0]
         except IndexError:
+            db.close()
             raise UserNotFoundError("User not found")
 
         user = ModelUser.constructor(user)
@@ -263,6 +289,8 @@ class User:
          - rights: (int) new rights of user
          - userID: (int) ID of user
         :return: (int) Exit code
+        :raise: UserNotFoundError if no user selected
+        :raise: PermissionError if user is not allowed to change rights
         """
         db = Database()
         try:
@@ -285,8 +313,8 @@ class User:
     def update_my_info(self, data: dict) -> int:
         """
         Function updates user info in database (only fot oneself)
-        :param data: (dict) data to update (email, full name)
-        :return: exit code (0 if success)
+        :param data: (dict) data to update (email, name; surname; year of birth; sex) (not hashed password)
+        :return: (int) exit code
         """
         for key in data.keys():
             if key in (kw.KW_USER_HASHED_PASSWORD,):
@@ -301,7 +329,7 @@ class User:
         """
         Function updates password in database (only for oneself)
         :param hashed_password: (str) new hashed password
-        :return: (int) 0 if success
+        :return: (int) Exit code
         """
         db = Database()
         exit_code = db.update_users({kw.KW_USER_HASHED_PASSWORD: hashed_password}, f"{kw.KW_USER_ID} = {self.ID}")

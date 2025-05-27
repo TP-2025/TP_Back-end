@@ -62,6 +62,11 @@ class ModelUser:
 
     @staticmethod
     def get_user_by_id(user_id: int) -> ["ModelUser", None]:
+        """Selects user with a given ID from database
+
+        :param user_id: (int) ID of user
+        :return: (ModelUser) user object or None if user not found
+        """
         db = Database()
         user = db.get_users(user_id)
         db.close()

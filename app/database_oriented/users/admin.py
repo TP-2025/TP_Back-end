@@ -1,6 +1,5 @@
 from app.database_oriented.database import Database
 from app.database_oriented.models.modelusers.model_admin import ModelAdmin
-from app.database_oriented.models.modelusers.model_user import ModelUser
 from app.database_oriented.users.user import User
 import app.database_oriented.keywords as kw
 
@@ -21,6 +20,14 @@ class Admin(User):
 
     @staticmethod
     def add_admin(user_data: dict, hashed_password: str) -> (int, ModelAdmin):
+        """
+        Adds admin to database
+        :param user_data: (dict) dictionary of user data
+        :param hashed_password: (str) hashed password
+        :return: (int, ModelAdmin) exit_code, admin model object of added admin
+        :raise: KeyError if admin doesn't have name, surname, email
+        :raise: IndexError if user was not successfully added to database
+        """
         required_keys = (kw.KW_USER_NAME, kw.KW_USER_SURNAME, kw.KW_USER_EMAIL)
         for key in required_keys:
             if key not in user_data.keys():
@@ -46,7 +53,11 @@ class Admin(User):
         return exit_code, admin_model
 
     @staticmethod
-    def get_technics():
+    def get_technics() -> list[dict]:
+        """
+        Returns list of technics
+        :return: (list[dict]) list of technics
+        """
         db = Database()
         role_id = Database.get_role_id_by_name(kw.ROLE_TECHNIC)
         found_technics = db.select_users(f"{kw.KW_USER_ROLE_ID} = {role_id}")
@@ -65,7 +76,11 @@ class Admin(User):
         return found_technics
 
     @staticmethod
-    def get_patients():
+    def get_patients() -> list[dict]:
+        """
+        Returns list of patients
+        :return: (list[dict]) list of patients
+        """
         db = Database()
         found_patients = db.get_patients()
         db.close()
@@ -82,7 +97,11 @@ class Admin(User):
         return simplified
 
     @staticmethod
-    def get_medics():
+    def get_medics() -> list[dict]:
+        """
+        Returns list of medics
+        :return: (list[dict]) list of medics
+        """
         db = Database()
         role_id = Database.get_role_id_by_name(kw.ROLE_MEDIC)
         found_medics = db.select_users(f"{kw.KW_USER_ROLE_ID} = {role_id}")
@@ -101,7 +120,11 @@ class Admin(User):
         return found_medics
 
     @staticmethod
-    def get_admins():
+    def get_admins() -> list[dict]:
+        """
+        Returns list of admins
+        :return: (list[dict]) list of admins
+        """
         db = Database()
         role_id = Database.get_role_id_by_name(kw.ROLE_ADMIN)
         found_admins = db.select_users(f"{kw.KW_USER_ROLE_ID} = {role_id}")
@@ -121,7 +144,12 @@ class Admin(User):
         return found_admins
 
     @staticmethod
-    def get_original_images(sql_where: str = ""):
+    def get_original_images(sql_where: str = "") -> list[dict]:
+        """
+        Returns original images
+        :param sql_where: (str) sql where condition
+        :return: (list[dict]) list of original images
+        """
         db = Database()
         found_original_images = db.select_original_images(sql_where)
         db.close()
@@ -129,17 +157,17 @@ class Admin(User):
         return found_original_images
 
     @staticmethod
-    def get_processed_images(sql_where: str = ""):
+    def get_processed_images(sql_where: str = "") -> list[dict]:
+        """
+        Returns processed images
+        :param sql_where: (str) sql where condition
+        :return: (list[dict]) list of processed images
+        """
         db = Database()
         found_processed_images = db.select_processed_images(sql_where)
         db.close()
         # TODO: make return simplified if needed
         return found_processed_images
-
-
-
-
-
 
     def is_allowed_to_add_users(self, target_role: str) -> bool:
         """

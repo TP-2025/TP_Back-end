@@ -16,7 +16,11 @@ class ModelMedic(ModelUser):
         # Many to many relation
         return []
 
-    def get_patients(self) -> list[dict,]:
+    def get_patients(self) -> list[dict]:
+        """
+        Returns list of patients associated with this medic
+        :return: (list[dict]) list of patients
+        """
         db = Database()
         if self.rights & kw.ALLOWED_TO_SEE_ALL_PATIENTS:
             found_patients = db.get_patients()
@@ -25,7 +29,11 @@ class ModelMedic(ModelUser):
         db.close()
         return found_patients
 
-    def get_original_images(self):
+    def get_original_images(self) -> list[dict]:
+        """
+        Returns list of original images associated with this medic
+        :return: (list[dict]) list of original images
+        """
         found_original_images = []
         db = Database()
         for patient in self.get_patients():
@@ -39,7 +47,11 @@ class ModelMedic(ModelUser):
 
         return found_original_images
 
-    def get_processed_images(self):
+    def get_processed_images(self) -> list[dict]:
+        """
+        Returns list of processed images associated with this medic
+        :return: (list[dict]) list of processed images
+        """
         found_processed_images = []
         db = Database()
         for patient in self.get_patients():

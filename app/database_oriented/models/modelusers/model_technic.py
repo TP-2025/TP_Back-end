@@ -14,7 +14,11 @@ class ModelTechnic(ModelUser):
         # Many to many relation
         return []
 
-    def get_original_images(self):
+    def get_original_images(self) -> list[dict]:
+        """
+        Returns list of original images connected to this technic (only image ID, device ID and path to image for each)
+        :return: (list[dict]) simplified list of original images
+        """
         db = Database()
         found_original_images = db.select_original_images(f"{kw.KW_IMAGE_TECHNIC_ID} = {self.ID}")
         db.close()
@@ -23,7 +27,9 @@ class ModelTechnic(ModelUser):
         for image in found_original_images:
             try:
                 simplified.append({
-                    "id": image[kw.KW_IMAGE_ID],
+                    kw.KW_IMAGE_ID: image[kw.KW_IMAGE_ID],
+                    kw.KW_IMAGE_DEVICE_ID: image.get(kw.KW_IMAGE_DEVICE_ID, kw.V_EMPTY_INT),
+                    kw.KW_IMAGE_PATH: image.get(kw.KW_IMAGE_PATH, kw.V_EMPTY_STRING),
                     # "name": image[kw.KW_USER_NAME],
                     # "surname": image[kw.KW_USER_SURNAME],
                 })

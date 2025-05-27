@@ -1,5 +1,3 @@
-from collections.abc import Callable
-
 import mysql.connector
 import app.database_oriented.keywords as kw
 

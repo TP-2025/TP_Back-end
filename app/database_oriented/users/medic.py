@@ -1,7 +1,6 @@
 import app.database_oriented.keywords as kw
 from app.database_oriented.database import Database
 from app.database_oriented.models.modelusers.model_medic import ModelMedic
-from app.database_oriented.models.modelusers.model_user import ModelUser
 from app.database_oriented.users.user import User
 
 
@@ -12,7 +11,7 @@ class Medic(User):
         db.close()
 
         try:
-            model_medic = ModelUser.constructor(found[0])
+            model_medic = ModelMedic.constructor(found[0])
         except IndexError:
             raise IndexError(f"User with given ID '{ID}' not found")
 

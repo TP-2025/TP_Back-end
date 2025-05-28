@@ -53,11 +53,11 @@ class Medic(User):
 
         return exit_code, medic_model
 
-#    def get_technics(self):
-#        # TODO: Needs rework and implementation about storing relation between medic and technics
-#        return self._myself_model.get_technics()
+    #    def get_technics(self):
+    #        # TODO: Needs rework and implementation about storing relation between medic and technics
+    #        return self._myself_model.get_technics()
 
-# TODO: Len na testovanie, neskôr potrebné upraviť podľa požiadaviek
+    # TODO: Len na testovanie, neskôr potrebné upraviť podľa požiadaviek
     @staticmethod
     def get_technics() -> list[dict]:
         """

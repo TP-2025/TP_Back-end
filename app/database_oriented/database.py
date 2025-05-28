@@ -416,6 +416,43 @@ class Database:
         return self.__count(kw.TBL_PATIENTS, condition)
 
     # Original images
+    def get_original_images(self, image_id: int = kw.V_NULL, patient_id: int = kw.V_NULL) -> list[dict]:
+        """
+        Database query to retrieve processed images from the kw.TBL_PIMAGES table. If none parameter filled, returns
+        all processed images.
+
+        Parameters:
+        - image_id (int, optional): ID of the image to retrieve (first to check).
+        - oimage_id (int, optional): ID of the original image to retrieve (second to check).
+        - patient_id (int, optional): ID of the patient to retrieve (third to check).
+
+        Returns:
+        - list[dict]: List of processed image records.
+        """
+        try:
+            sql = f"CALL get_original_image(%s, %s)"
+            self.cursor.execute(sql, (image_id, patient_id))
+            images = self.cursor.fetchall()
+            diagnoses_names = {}
+            diagnoses_ids = {}
+            for image in images:
+                diagnoses_names.setdefault(image[kw.KW_IMAGE_ID], []).append(image[kw.KW_DIAGNOSIS_NAME])
+                diagnoses_ids.setdefault(image[kw.KW_IMAGE_ID], []).append(image[kw.KW_DIAGNOSIS_ID])
+
+            new_images = []
+            for image in images:
+                image_id = image[kw.KW_IMAGE_ID]
+                if image_id in diagnoses_names.keys():
+                    new_images.append({**image, kw.KW_DIAGNOSIS_NAME: diagnoses_names[image_id], kw.KW_DIAGNOSIS_ID: diagnoses_ids[image_id]})
+                    diagnoses_ids.pop(image_id)
+                    diagnoses_names.pop(image_id)
+            return new_images
+
+        except mysql.connector.Error as err:
+            print(f"[SELECT ERROR] {err}")
+            self.close()
+            return []
+
     def insert_one_original_image(self, image: dict) -> int:
         """
         Inserts a single original image into the kw.TBL_IMAGES table.
@@ -881,3 +918,194 @@ class Database:
         - int: The number of methods, or -1 on error.
         """
         return self.__count(kw.TBL_METHODS, condition)
+
+    # Diagnoses
+    def insert_one_diagnosis(self, diagnosis: dict) -> int:
+        """
+        Inserts a single diagnosis into the kw.TBL_DIAGNOSIS table.
+
+        Parameters:
+        - diagnosis (dict): Dictionary containing diagnosis fields.
+
+        Returns:
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
+        """
+        diagnosis = self._filter_dict(diagnosis, kw.KW_LIST_DIAGNOSIS)
+        return self.__insert(kw.TBL_DIAGNOSIS, [diagnosis, ])
+
+    def insert_diagnoses(self, diagnoses: list) -> int:
+        """
+        Inserts multiple diagnoses into the kw.TBL_DIAGNOSIS table.
+
+        Parameters:
+        - diagnoses (list): List of diagnosis dictionaries.
+
+        Returns:
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
+        """
+        diagnoses = [self._filter_dict(diagnosis, kw.KW_LIST_DIAGNOSIS) for diagnosis in diagnoses]
+        return self.__insert(kw.TBL_DIAGNOSIS, diagnoses)
+
+    def delete_diagnoses(self, condition: str) -> int:
+        """
+        Deletes diagnoses from the kw.TBL_DIAGNOSIS table based on a condition.
+
+        Parameters:
+        - condition (str): SQL WHERE condition.
+
+        Returns:
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_DELETE_ERROR on error.
+        """
+        return self.__delete(kw.TBL_DIAGNOSIS, condition)
+
+    def select_diagnoses(self, condition: str = None) -> list:
+        """
+        Retrieves diagnoses from the kw.TBL_DIAGNOSIS table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - list: List of diagnosis records.
+        """
+        return self.__select(kw.TBL_DIAGNOSIS, condition)
+
+    def update_diagnoses(self, updates: dict, condition: str) -> int:
+        """
+        Updates specific columns in the kw.TBL_DIAGNOSIS table based on a condition.
+
+        Parameters:
+        - updates (dict): Dictionary of column-value pairs to update.
+        - condition (str): SQL WHERE condition to specify which rows to update.
+
+        Returns:
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_UPDATE_ERROR on error.
+        """
+        updates = self._filter_dict(updates, kw.KW_LIST_DIAGNOSIS)
+        return self.__update(kw.TBL_DIAGNOSIS, updates, condition)
+
+    def count_diagnoses(self, condition: str = None) -> int:
+        """
+        Counts the number of diagnoses in the kw.TBL_DIAGNOSIS table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - int: The number of diagnoses, or -1 on error.
+        """
+        return self.__count(kw.TBL_DIAGNOSIS, condition)
+
+    @staticmethod
+    def get_diagnosis_by_id(diagnosis_id: int) -> [str, None]:
+        """
+        Retrieves a diagnosis name from the kw.TBL_DIAGNOSIS table based on its ID.
+
+        Parameters:
+        - diagnosis_id (int): ID of the diagnosis to retrieve.
+
+        Returns:
+        - str: Diagnosis name if found, None otherwise.
+        """
+        db = Database()
+        try:
+            diagnosis = db.select_diagnoses(f"{kw.KW_DIAGNOSIS_ID} = {diagnosis_id}")[0]
+            db.close()
+            return diagnosis[kw.KW_DIAGNOSIS_NAME]
+        except IndexError:
+            db.close()
+            return None
+
+    @staticmethod
+    def get_diagnosis_id_by_name(diagnosis_name: str) -> [int, None]:
+        """
+        Retrieves a diagnosis ID from the kw.TBL_DIAGNOSIS table based on its name.
+
+        Parameters:
+        - diagnosis_name (str): Name of the diagnosis to retrieve.
+
+        Returns:
+        - int: Diagnosis ID if found, None otherwise.
+        """
+        db = Database()
+        try:
+            diagnosis = db.select_diagnoses(f"{kw.KW_DIAGNOSIS_NAME} = '{diagnosis_name}'")[0]
+            db.close()
+            return diagnosis[kw.KW_DIAGNOSIS_ID]
+        except IndexError:
+            db.close()
+            return None
+
+    # Join table between originalne obrazy and diagnoses
+    def insert_one_original_diagnosis(self, original_diagnosis: dict) -> int:
+        """
+        Inserts a single original_diagnosis into the kw.TBL_ORIGINAL_DIAGNOSIS table.
+
+        Parameters:
+        - original_diagnosis (dict): Dictionary containing original_diagnosis fields.
+
+        Returns:
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
+        """
+        return self.__insert(kw.TBL_ORIGINAL_DIAGNOSIS, [original_diagnosis, ])
+
+    def insert_original_diagnoses(self, original_diagnoses: list) -> int:
+        """
+        Inserts multiple original_diagnoses into the kw.TBL_ORIGINAL_DIAGNOSIS table.
+
+        Parameters:
+        - original_diagnoses (list): List of original_diagnosis dictionaries.
+
+        Returns:
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
+        """
+        return self.__insert(kw.TBL_ORIGINAL_DIAGNOSIS, original_diagnoses)
+
+    def select_original_diagnoses(self, condition: str = None) -> list:
+        """
+        Retrieves original_diagnoses from the kw.TBL_ORIGINAL_DIAGNOSIS table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - list: List of original_diagnosis records.
+        """
+        return self.__select(kw.TBL_ORIGINAL_DIAGNOSIS, condition)
+
+    def update_original_diagnoses(self, updates: dict, condition: str) -> int:
+        """
+        Updates specific columns in the kw.TBL_ORIGINAL_DIAGNOSIS table based on a condition.
+
+        Parameters:
+        - updates (dict): Dictionary of column-value pairs to update.
+        - condition (str): SQL WHERE condition to specify which rows to update.
+
+        Returns:
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_UPDATE_ERROR on error.
+        """
+        return self.__update(kw.TBL_ORIGINAL_DIAGNOSIS, updates, condition)
+
+    def count_original_diagnoses(self, condition: str = None) -> int:
+        """
+        Counts the number of original_diagnoses in the kw.TBL_ORIGINAL_DIAGNOSIS table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - int: The number of original_diagnoses, or -1 on error.
+        """
+        return self.__count(kw.TBL_ORIGINAL_DIAGNOSIS, condition)
+
+    def delete_original_diagnoses(self, condition: str) -> int:
+        """
+        Deletes original_diagnoses from the kw.TBL_ORIGINAL_DIAGNOSIS table based on a condition.
+
+        Parameters:
+        - condition (str): SQL WHERE condition to specify which rows to delete.
+
+        Returns:
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_DELETE_ERROR on error.
+        """
+        return self.__delete(kw.TBL_ORIGINAL_DIAGNOSIS, condition)

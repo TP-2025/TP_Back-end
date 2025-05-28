@@ -108,8 +108,34 @@ class ModelPatient(ModelUser):
         :param simplified: (bool) if True, returns simplified list of original images
         :return: (list[dict]) list of original images
         """
-        images = self.search_original_images("", simplified)
-        return images
+        db = Database()
+        images = db.get_original_images(patient_id=self.patient_id)
+        if simplified:
+            simplified_list = []
+            for image in images:
+                try:
+                    simplified_list.append({
+                        kw.KW_IMAGE_ID: image[kw.KW_IMAGE_ID],
+                        kw.KW_IMAGE_EYE: image.get(kw.KW_IMAGE_EYE, "nezadané"),
+                        "processed_images": db.count_processed_images(
+                            f"{kw.KW_PIMAGE_OIMAGE_ID} = {image[kw.KW_IMAGE_ID]}")
+                    })
+                except KeyError:
+                    continue
+            db.close()
+            return simplified_list
+        else:
+            db.close()
+            return images
+
+    # def get_original_images(self, simplified: bool = False) -> list[dict]:
+    #     """
+    #     Returns list of original images connected to this patient
+    #     :param simplified: (bool) if True, returns simplified list of original images
+    #     :return: (list[dict]) list of original images
+    #     """
+    #     images = self.search_original_images("", simplified)
+    #     return images
 
     @staticmethod
     def get_original_image_model_by_id(image_id: int) -> ["ModelOriginalImage", None]:

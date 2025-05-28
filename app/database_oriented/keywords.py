@@ -6,6 +6,8 @@ TBL_ROLES = "role"
 TBL_PIMAGES = "spracovane_obrazy"
 TBL_USERS = "uzivatelia"
 TBL_DEVICES = "zariadenia"
+TBL_DIAGNOSIS = "diagnozy"
+TBL_ORIGINAL_DIAGNOSIS = "originalne_obrazy_diagnozy"
 
 
 # rights
@@ -101,6 +103,15 @@ KW_DEVICE_ID = "id"
 KW_DEVICE_NAME = "nazov"
 KW_DEVICE_TYPE = "typ"
 
+# Keywords for accessing diagnoses in database
+KW_DIAGNOSIS_ID = "id_diagnozy"
+KW_DIAGNOSIS_NAME = "diagnoza"
+
+# Keywords for accessing joints between tables originalne obraz and diagnoses in database
+KW_OD_ID = "id_connect"
+KW_OD_ORIGINAL_IMAGE_ID = "originalny_obraz_id"
+KW_OD_DIAGNOSIS_ID = "diagnoza_id"
+
 
 # Keyword lists
 KW_LIST_USER = [KW_USER_NAME, KW_USER_SURNAME, KW_USER_EMAIL, KW_USER_HASHED_PASSWORD, KW_USER_ROLE_ID,
@@ -113,5 +124,7 @@ KW_LIST_PIMAGE = [KW_PIMAGE_OIMAGE_ID, KW_PIMAGE_USED_METHOD_ID, KW_PIMAGE_RESUL
                   KW_PIMAGE_STATE, KW_PIMAGE_QUALITY, KW_PIMAGE_NOTE_TECHNIC, KW_PIMAGE_NOTE_MEDIC,
                   KW_PIMAGE_PATH]
 KW_LIST_DEVICE = [KW_DEVICE_NAME, KW_DEVICE_TYPE]
-KW_LIST_ROLE = [KW_ROLE_NAME]
-KW_LIST_METHOD = [KW_METHOD_NAME]
+KW_LIST_ROLE = [KW_ROLE_NAME,]
+KW_LIST_METHOD = [KW_METHOD_NAME,]
+KW_LIST_DIAGNOSIS = [KW_DIAGNOSIS_NAME,]
+KW_LIST_OD = [KW_OD_ORIGINAL_IMAGE_ID, KW_OD_DIAGNOSIS_ID]

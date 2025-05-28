@@ -435,8 +435,8 @@ class Database:
             diagnoses_names = {}
             diagnoses_ids = {}
             for image in images:
-                diagnoses_names.setdefault(image[kw.KW_IMAGE_ID], []).append(image[kw.KW_DIAGNOSIS_NAME])
-                diagnoses_ids.setdefault(image[kw.KW_IMAGE_ID], []).append(image[kw.KW_DIAGNOSIS_ID])
+                diagnoses_names.setdefault(image[kw.KW_IMAGE_ID], []).append(image.get(kw.KW_DIAGNOSIS_NAME, kw.V_EMPTY_STRING))
+                diagnoses_ids.setdefault(image[kw.KW_IMAGE_ID], []).append(image.get(kw.KW_DIAGNOSIS_ID, kw.V_EMPTY_INT))
 
             new_images = []
             for image in images:

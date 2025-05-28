@@ -418,13 +418,12 @@ class Database:
     # Original images
     def get_original_images(self, image_id: int = kw.V_NULL, patient_id: int = kw.V_NULL) -> list[dict]:
         """
-        Database query to retrieve processed images from the kw.TBL_PIMAGES table. If none parameter filled, returns
+        Database query to retrieve original images from the kw.TBL_IMAGES table. If none parameter filled, returns
         all processed images.
 
         Parameters:
         - image_id (int, optional): ID of the image to retrieve (first to check).
-        - oimage_id (int, optional): ID of the original image to retrieve (second to check).
-        - patient_id (int, optional): ID of the patient to retrieve (third to check).
+        - patient_id (int, optional): ID of the patient to retrieve (second to check).
 
         Returns:
         - list[dict]: List of processed image records.

@@ -10,6 +10,11 @@ class Device:
 
     @staticmethod
     def get_device_by_id(ID: int) -> dict:
+        """
+        Returns device with a given ID
+        :param ID: (int) device ID
+        :return: (dict) device
+        """
         db = Database()
         try:
             device = db.select_devices(f"{kw.KW_DEVICE_ID} = {ID}")[0]
@@ -21,6 +26,11 @@ class Device:
 
     @staticmethod
     def get_device_by_name(name: str) -> dict:
+        """
+        Returns device with a given name
+        :param name: (str) device name
+        :return: (dict) device
+        """
         db = Database()
         try:
             device = db.select_devices(f"{kw.KW_DEVICE_NAME} = '{name}'")[0]
@@ -32,6 +42,11 @@ class Device:
 
     @staticmethod
     def add_device(data: dict) -> int:
+        """
+        Adds device to the database
+        :param data: (dict) dictionary of device data
+        :return: (int) exit code
+        """
         db = Database()
         exit_code = db.insert_one_device(data)
         db.close()
@@ -39,6 +54,11 @@ class Device:
 
     @staticmethod
     def delete_device_by_id(ID: int) -> int:
+        """
+        Deletes device by ID
+        :param ID: (int) device ID
+        :return: (int) exit code
+        """
         db = Database()
         exit_code = db.delete_devices(f"{kw.KW_DEVICE_ID} = {ID}")
         db.close()
@@ -46,6 +66,10 @@ class Device:
 
     @staticmethod
     def get_all_devices() -> list[dict]:
+        """
+        Returns all devices
+        :return: (list[dict]) list of devices
+        """
         db = Database()
         devices = db.select_devices("")
         db.close()

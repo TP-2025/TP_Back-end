@@ -74,7 +74,7 @@ class Medic(User):
                 simplified.append({
                     kw.KW_USER_ID: medic[kw.KW_USER_ID],
                     kw.KW_USER_SEX: medic[kw.KW_USER_SEX],
-                    kw.KW_USER_YEAR_OF_BIRTH: medic[kw.KW_USER_YEAR_OF_BIRTH],
+                    kw.KW_USER_DATE_OF_BIRTH: medic[kw.KW_USER_DATE_OF_BIRTH],
                 })
             except KeyError:
                 continue

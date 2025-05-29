@@ -14,11 +14,11 @@ class ModelPatient(ModelUser):
 
         name = kwargs.pop(kw.KW_USER_NAME, kw.V_EMPTY_STRING)
         surname = kwargs.pop(kw.KW_USER_SURNAME, kw.V_EMPTY_STRING)
-        date_of_birth = kwargs.pop(kw.KW_PATIENT_DATE_OF_BIRTH, kw.V_EMPTY_STRING)
+        #date_of_birth = kwargs.pop(kw.KW_PATIENT_DATE_OF_BIRTH, kw.V_EMPTY_STRING)
 
         super().__init__(ID, name, surname, 0, role_id, **kwargs)
         self.patient_id = patient_id
-        self.date_of_birth = date_of_birth
+        #self.date_of_birth = date_of_birth
         self.diagnosis = diagnosis
         self.medical_notes = medical_notes
         self.medic_id = medic_id
@@ -59,7 +59,7 @@ class ModelPatient(ModelUser):
         deconstructed = {
             **super().deconstructor(),
             kw.KW_PATIENT_ID: self.patient_id,
-            kw.KW_PATIENT_DATE_OF_BIRTH: self.date_of_birth,
+            # kw.KW_PATIENT_DATE_OF_BIRTH: self.date_of_birth,
             kw.KW_PATIENT_MEDIC_ID: self.medic_id
         }
         if not self.safe_mode:

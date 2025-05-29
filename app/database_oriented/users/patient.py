@@ -150,13 +150,13 @@ class Patient(User):
     #     """
     #     return super().select_one_patient(self.ID, safe_mode)  # TO THINK: maybe should raise permissionError
 
-    # def add_patient_info(self, patient_userID: int, year_of_birth: int = -1, sex: str = "Unknown",
+    # def add_patient_info(self, patient_userID: int, date_of_birth: int = -1, sex: str = "Unknown",
     #                      diagnosis: str = "Unknown", medical_notes: str = "", medic_id: int = -1) -> int:
     #     """
     #     Adds patient data to database, needs to be called immediately after adding patient user to database by add_user,
     #     for patient disabled
     #     :param patient_userID: (int) ID of patient user in database
-    #     :param year_of_birth: (int, optional) year of birth of patient
+    #     :param date_of_birth: (int, optional) year of birth of patient
     #     :param sex: (str, optional) sex of patient
     #     :param diagnosis: (str, optional) diagnosis of patient
     #     :param medical_notes: (str, optional) medical notes of patient

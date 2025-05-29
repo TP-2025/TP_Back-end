@@ -68,7 +68,7 @@ class Admin(User):
                 simplified.append({
                     kw.KW_USER_ID: medic[kw.KW_USER_ID],
                     kw.KW_USER_SEX: medic[kw.KW_USER_SEX],
-                    kw.KW_USER_YEAR_OF_BIRTH: medic[kw.KW_USER_YEAR_OF_BIRTH],
+                    kw.KW_USER_DATE_OF_BIRTH: medic[kw.KW_USER_DATE_OF_BIRTH],
                 })
             except KeyError:
                 continue
@@ -90,7 +90,7 @@ class Admin(User):
                 simplified.append({
                     kw.KW_PATIENT_ID: patient[kw.KW_PATIENT_ID],
                     kw.KW_USER_SEX: patient[kw.KW_USER_SEX],
-                    kw.KW_USER_YEAR_OF_BIRTH: patient[kw.KW_USER_YEAR_OF_BIRTH],
+                    kw.KW_USER_DATE_OF_BIRTH: patient[kw.KW_USER_DATE_OF_BIRTH],
                 })
             except KeyError:
                 continue
@@ -112,7 +112,7 @@ class Admin(User):
                 simplified.append({
                     kw.KW_USER_ID: medic[kw.KW_USER_ID],
                     kw.KW_USER_SEX: medic[kw.KW_USER_SEX],
-                    kw.KW_USER_YEAR_OF_BIRTH: medic[kw.KW_USER_YEAR_OF_BIRTH],
+                    kw.KW_USER_DATE_OF_BIRTH: medic[kw.KW_USER_DATE_OF_BIRTH],
                 })
             except KeyError:
                 continue
@@ -135,7 +135,7 @@ class Admin(User):
                 simplified.append({
                     kw.KW_USER_ID: admin[kw.KW_USER_ID],
                     kw.KW_USER_SEX: admin[kw.KW_USER_SEX],
-                    kw.KW_USER_YEAR_OF_BIRTH: admin[kw.KW_USER_YEAR_OF_BIRTH],
+                    kw.KW_USER_DATE_OF_BIRTH: admin[kw.KW_USER_DATE_OF_BIRTH],
                 })
             except KeyError:
                 continue

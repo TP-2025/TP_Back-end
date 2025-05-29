@@ -59,8 +59,8 @@ class ModelUser:
                     }
         return dict(filtered)
 
-    @staticmethod
-    def get_user_by_id(user_id: int) -> ["ModelUser", None]:
+    @classmethod
+    def get_user_by_id(cls, user_id: int) -> ["ModelUser", None]:
         """Selects user with a given ID from database
 
         :param user_id: (int) ID of user
@@ -71,7 +71,7 @@ class ModelUser:
         db.close()
 
         try:
-            return ModelUser.constructor(user[0])
+            return cls.constructor(user[0])
         except IndexError:
             return None
 

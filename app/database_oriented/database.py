@@ -919,7 +919,7 @@ class Database:
         return self.__count(kw.TBL_METHODS, condition)
 
     # Diagnoses
-    def insert_one_diagnosis(self, diagnosis: dict) -> int:
+    def insert_one_diagnose(self, diagnosis: dict) -> int:
         """
         Inserts a single diagnosis into the kw.TBL_DIAGNOSIS table.
 
@@ -996,7 +996,7 @@ class Database:
         return self.__count(kw.TBL_DIAGNOSIS, condition)
 
     @staticmethod
-    def get_diagnosis_by_id(diagnosis_id: int) -> [str, None]:
+    def get_diagnose_by_id(diagnosis_id: int) -> [str, None]:
         """
         Retrieves a diagnosis name from the kw.TBL_DIAGNOSIS table based on its ID.
 
@@ -1016,7 +1016,7 @@ class Database:
             return None
 
     @staticmethod
-    def get_diagnosis_id_by_name(diagnosis_name: str) -> [int, None]:
+    def get_diagnose_id_by_name(diagnosis_name: str) -> [int, None]:
         """
         Retrieves a diagnosis ID from the kw.TBL_DIAGNOSIS table based on its name.
 
@@ -1036,7 +1036,7 @@ class Database:
             return None
 
     # Join table between originalne obrazy and diagnoses
-    def insert_one_original_diagnosis(self, original_diagnosis: dict) -> int:
+    def insert_one_original_diagnose(self, original_diagnosis: dict) -> int:
         """
         Inserts a single original_diagnosis into the kw.TBL_ORIGINAL_DIAGNOSIS table.
 

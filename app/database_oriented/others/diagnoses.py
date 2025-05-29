@@ -61,7 +61,7 @@ class Diagnose:
         :return: (int) exit code
         """
         db = Database()
-        exit_code = db.insert_one_diagnosis({kw.KW_DIAGNOSIS_NAME: diagnose_name})
+        exit_code = db.insert_one_diagnose({kw.KW_DIAGNOSIS_NAME: diagnose_name})
         db.close()
         return exit_code
 

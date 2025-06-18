@@ -1,15 +1,19 @@
+import logging
 from datetime import datetime
 from datetime import date
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Request
+from fastapi.exceptions import RequestValidationError
 
-from app.database_oriented.exitcodes_errors import InvalidTargetRoleError
+from app.database_oriented.exitcodes_errors import InvalidTargetRoleError, ExitCodes
 from app.database_oriented.users.medic import Medic
 from app.database_oriented.users.technic import Technic
 from app.frontend_oriented.schemas.admin import GetPatientResponse
+from app.frontend_oriented.schemas.image import AddPicture, QualityEnum, EyeEnum
 from app.frontend_oriented.schemas.user import CreatePatient, CreateTechnic, PatientOut, GetPatientResponse, \
     DeletePatient, GetUsersResponse, UserOut
 from app.frontend_oriented.services.auth import check_user, create_password, hash_password
+from app.frontend_oriented.services.image_service import save_upload_file
 from app.frontend_oriented.services.token_service import TokenService
 import app.database_oriented.keywords as kw
 
@@ -147,3 +151,88 @@ def delete_patient(user_data: DeletePatient, current_user=Depends(check_user)):
         current_user.delete_user_by_id(user_data.id)
     except (PermissionError) as e:
         raise HTTPException(status_code=403, detail=str(e))
+
+
+
+    #Kód na pridanie fotky..
+from fastapi import Form
+from typing import Optional
+
+
+
+@router.post("/addPicture", status_code=201)
+async def add_picture(
+    patient_id: int = Form(...),
+    device_id: Optional[int] = Form(None),
+    additional_equipment_id: Optional[int] = Form(None),
+    quality: Optional[QualityEnum] = Form(None),
+    technic_notes: Optional[str] = Form(None),
+    eye: Optional[EyeEnum] = Form(None),
+    date: Optional[date] = Form(None),
+    technician_id: Optional[int] = Form(None),
+    image: Optional[UploadFile] = File(None),
+    current_user=Depends(check_user),
+):
+    # Autorizácia
+    if not isinstance(current_user, (Admin, Medic, Technic)):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    # Ulož obrázok
+    saved_path = await save_upload_file(image)
+
+    from app.database_oriented.keywords import (
+        KW_IMAGE_PATH, KW_PATIENT_ID, KW_DEVICE_ID, KW_IMAGE_QUALITY, KW_IMAGE_EYE,
+        KW_IMAGE_NOTE_TECHNIC, KW_IMAGE_DATE, KW_IMAGE_TECHNIC_ID
+    )
+
+    image_data = {
+        KW_IMAGE_PATH: saved_path,
+        KW_PATIENT_ID: patient_id,
+        KW_DEVICE_ID: device_id if device_id is not None else kw.V_EMPTY_INT,
+        #KW_ADDITIONAL_EQUIPMENT_ID: additional_equipment_id if additional_equipment_id is not None else kw.V_EMPTY_INT,
+        KW_IMAGE_QUALITY: quality if quality is not None else kw.V_EMPTY_STRING,
+        KW_IMAGE_EYE: eye if eye is not None else kw.V_EMPTY_STRING,
+        KW_IMAGE_NOTE_TECHNIC: technic_notes if technic_notes is not None else kw.V_EMPTY_STRING,
+        KW_IMAGE_DATE: date if date is not None else kw.V_EMPTY_STRING,
+        KW_IMAGE_TECHNIC_ID: technician_id if technician_id is not None else kw.V_EMPTY_INT,
+    }
+    from app.database_oriented.models.modelimages.model_original_image import ModelOriginalImage
+
+    exit_code, model_image = ModelOriginalImage.add_original_image(image_data)
+
+    if exit_code != ExitCodes.SUCCESS:
+        raise HTTPException(status_code=500, detail="Failed to add image")
+
+    return {"filename"}
+
+"""
+
+@router.post("/addPicture", status_code=201)
+async def add_picture(
+        patient_id: int = Form(...),
+        device_id: Optional[int] = Form(None),
+        additional_equipment_id: Optional[int] = Form(None),
+        quality: Optional[QualityEnum] = Form(None),
+        technic_notes: Optional[str] = Form(None),
+        eye: Optional[EyeEnum] = Form(None),
+        date: Optional[date] = Form(None),
+        technician_id: Optional[int] = Form(None),
+        image: UploadFile = File(...),  # image je povinný, nie Optional
+        current_user=Depends(check_user),
+):
+    # Tu daj aspoň nejaký print/debug
+    print(f"Got upload from patient_id={patient_id} by user={current_user}")
+
+    # Pre jednoduché testovanie - načítaj aspoň header obrázka
+    content = await image.read()
+    print(f"Image size: {len(content)} bytes, filename={image.filename}")
+
+    # Tu môžeš uložiť obrázok a spracovať metadáta
+    # ...
+
+    return {"message": "Image uploaded successfully", "patient_id": patient_id}
+
+"""
+
+
+

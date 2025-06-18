@@ -71,7 +71,7 @@ def reset_password(user_data: EmailStr):
 
 
 
-    err = current_user.update_my_password(hashed_password)
-    if err != 0:
-        raise HTTPException(status_code= 500, detail="server error")
+    #err = current_user.update_my_password(hashed_password)
+    #if err != 0:
+    #    raise HTTPException(status_code= 500, detail="server error")
 

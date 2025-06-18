@@ -12,7 +12,7 @@ from app.database_oriented.users import patient
 from app.frontend_oriented.schemas.admin import TechnicOut, GetTechnicResponse, PatientOut, GetPatientResponse
 from app.frontend_oriented.schemas.auth import GetAdminResponse, AdminOut, CreateUser, DeleteUser, DoctorOut, GetDoctorResponse
 from app.frontend_oriented.services.token_service import TokenService
-from app.frontend_oriented.services.auth import authenticate_user, check_user
+from app.frontend_oriented.services.auth import authenticate_user, check_user, mask_name
 
 from app.database_oriented.users.admin import Admin
 
@@ -76,23 +76,31 @@ def get_doctors(response: Response, current_user=Depends(check_user)):
 
     return GetDoctorResponse(doctors=user_responses)
 
+import logging
+logger = logging.getLogger(__name__)
+
+
 @router.get("/getPatients", response_model= GetPatientResponse)
 def get_patients(response: Response, current_user=Depends(check_user)):
     if not isinstance(current_user, Admin):
         raise HTTPException(status_code=403, detail= "Fuck off")
     patients = current_user.get_patients()
 
-    user_responses = [
-        PatientOut(
-            name= "**",
-            surname= "**",
-            email= "aa@aa.com",                      #získať tieto údaje z databázy
-            id= patient["pacient_id"],
-            year_of_birth= patient["rok_narodenia"], #Vrátiť celý dátum
-            sex= patient["pohlavie"]
-    )
-    for patient in patients
-    ]
+    user_responses = []
+    for patient in patients:
+        try:
+            user_responses.append(
+                PatientOut(
+                    name=mask_name(patient["meno"]),
+                    surname=mask_name(patient["priezvisko"]),
+                    email="asdsd@sadsd.com",
+                    id=patient["pacient_id"],
+                    year_of_birth="2000",#patient["rok_narodenia"],
+                    sex=patient["pohlavie"]
+                )
+            )
+        except Exception as e:
+            logger.warning(f"Chybný záznam pacienta: {patient} — {e}")
 
     return GetPatientResponse(patients=user_responses)
 
@@ -130,8 +138,7 @@ def create_doctor(user_data: CreateUser, current_user=Depends(check_user)):
         "email": user_data.email
     }
 
-    #EmailService.send_password_email(user_data.email, user_data.email, password)
-    print(password)
+
 
     try:
         exit_code = current_user.add_user(kw.ROLE_MEDIC, user_dict, hashed_password)
@@ -195,10 +202,10 @@ def create_technic(user_data: CreateUser, current_user=Depends(check_user)):
         raise HTTPException(status_code=403, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
-    #try:
-        #EmailService.send_password_email(str(user_data.email), user_data.name, password)
-    #except Exception as e:
-        #raise HTTPException(status_code=500, detail=f"Failed to create doctor: {str(e)}")
+    try:
+        EmailService.send_password_email(str(user_data.email), user_data.name, password)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create doctor: {str(e)}")
 
 @router.delete("/deleteUser")
 def delete_doctor(user_data: DeleteUser = Body(...), current_user=Depends(check_user)):
@@ -206,3 +213,10 @@ def delete_doctor(user_data: DeleteUser = Body(...), current_user=Depends(check_
         raise HTTPException(status_code=403, detail= "Fuck off")
 
     current_user.delete_user_by_id(user_data.id)
+
+@router.delete("/deletePatient")
+def delete_patient(user_data: DeleteUser = Body(...), current_user=Depends(check_user)):
+    if not isinstance(current_user, Admin):
+        raise HTTPException(status_code=403, detail= "Fuck off")
+
+    current_user.delete_patient_by_patient_id(user_data.id)

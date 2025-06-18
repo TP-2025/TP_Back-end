@@ -94,8 +94,9 @@ class Admin(User):
                 })
             except KeyError:
                 continue
-        return simplified
-
+        #TODO: Zmeniť podľa potreby
+        #return simplified
+        return found_patients
     @staticmethod
     def get_medics() -> list[dict]:
         """

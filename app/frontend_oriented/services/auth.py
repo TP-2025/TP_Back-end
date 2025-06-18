@@ -58,3 +58,8 @@ def check_user(request: Request) -> Union[Admin, Medic, Technic, Patient]:
         case 3: return Medic(ID=user_id, token=token)
         case 4: return Admin(ID=user_id, token=token)
         case _: raise HTTPException(403, "Invalid role")
+
+def mask_name(name: str) -> str:
+    if not name:
+        return ""
+    return name[0] + "*" * (len(name) - 1)

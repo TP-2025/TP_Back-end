@@ -13,7 +13,7 @@ class ModelUser:
 
         self.email = kwargs.get(kw.KW_USER_EMAIL, kw.V_EMPTY_STRING)
         self.sex = kwargs.get(kw.KW_USER_SEX, kw.V_EMPTY_STRING)
-        self.year_of_birth = kwargs.get(kw.KW_USER_YEAR_OF_BIRTH, kw.V_EMPTY_INT)
+        self.date_of_birth = kwargs.get(kw.KW_USER_DATE_OF_BIRTH, kw.V_EMPTY_INT)
 
         self.data = kwargs
         self.selected_image = None
@@ -51,7 +51,7 @@ class ModelUser:
                          kw.KW_USER_NAME: self.name,
                          kw.KW_USER_SURNAME: self.surname,
                          kw.KW_ROLE_NAME: self.role_name,
-                         kw.KW_USER_YEAR_OF_BIRTH: self.year_of_birth,
+                         kw.KW_USER_DATE_OF_BIRTH: self.date_of_birth,
                          kw.KW_USER_SEX: self.sex
                          }
         filtered = {key: value for key, value in deconstructed.items()
@@ -59,8 +59,8 @@ class ModelUser:
                     }
         return dict(filtered)
 
-    @staticmethod
-    def get_user_by_id(user_id: int) -> ["ModelUser", None]:
+    @classmethod
+    def get_user_by_id(cls, user_id: int) -> ["ModelUser", None]:
         """Selects user with a given ID from database
 
         :param user_id: (int) ID of user
@@ -71,7 +71,7 @@ class ModelUser:
         db.close()
 
         try:
-            return ModelUser.constructor(user[0])
+            return cls.constructor(user[0])
         except IndexError:
             return None
 

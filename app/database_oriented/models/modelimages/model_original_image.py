@@ -1,5 +1,6 @@
 import app.database_oriented.keywords as kw
 from app.database_oriented.database import Database
+from app.database_oriented.exitcodes_errors import ExitCodes
 from app.database_oriented.models.modelimages.model_processed_image import ModelProcessedImage
 
 
@@ -102,12 +103,29 @@ class ModelOriginalImage:
         :raise IndexError: if original image with given ID doesn't exist
         """
         db = Database()
-        found = db.select_original_images(f"id = {image_id}")
+        found = db.get_original_images(image_id)
         db.close()
         try:
             return cls.constructor(found[0], safe_mode)
         except IndexError:
             raise IndexError(f"Original image with given ID '{image_id}' not found")
+
+    # @classmethod
+    # def get_original_image_by_id(cls, image_id: int, safe_mode: bool = False) -> "ModelOriginalImage":
+    #     """
+    #     Gets original image by ID
+    #     :param image_id: (int) ID of original image to get
+    #     :param safe_mode: (bool) loads only non-sensitive information
+    #     :return: (ModelOriginalImage) object of ModelOriginalImage
+    #     :raise IndexError: if original image with given ID doesn't exist
+    #     """
+    #     db = Database()
+    #     found = db.select_original_images(f"id = {image_id}")
+    #     db.close()
+    #     try:
+    #         return cls.constructor(found[0], safe_mode)
+    #     except IndexError:
+    #         raise IndexError(f"Original image with given ID '{image_id}' not found")
 
     @staticmethod
     def delete_original_image_by_id(image_id: int) -> int:
@@ -249,3 +267,53 @@ class ModelOriginalImage:
         :return: (int) exit code
         """
         return self.update_original_image_data_by_id(self.ID, data)
+
+    def add_diagnoses_to_me(self, diagnoses: list[str]) -> int:
+        """
+        Adds diagnoses to original image
+        :param diagnoses: (list[str]) list of diagnoses
+        :return: (int) exit code
+        """
+        return self.add_diagnoses_to_image_with_id(self.ID, diagnoses)
+
+    @staticmethod
+    def add_diagnoses_to_image_with_id(image_id: int, diagnoses_names: list[str]) -> int:
+        """
+        Adds diagnoses to original image
+        :param image_id: (int) ID of original image
+        :param diagnoses_names: (list[str]) list of diagnoses
+        :return: (int) exit code
+        """
+        db = Database()
+        diagnoses_ids = []
+        for diagnose in diagnoses_names:
+            try:
+                diagnoses_ids.append(db.select_diagnoses(f"{kw.KW_DIAGNOSIS_NAME} = '{diagnose}'")[0])
+            except IndexError:
+                db.close()
+                raise IndexError(f"Diagnose with given name '{diagnose}' not found")
+        diagnoses = [{kw.KW_OD_ORIGINAL_IMAGE_ID: image_id, kw.KW_OD_DIAGNOSIS_ID: diagnose} for diagnose in diagnoses_ids]
+
+        exit_code = db.insert_original_diagnoses(diagnoses)
+        db.close()
+        return exit_code
+
+    def remove_diagnoses_from_me(self, diagnoses_names: list[str]) -> int:
+        """
+        Removes diagnoses from original image
+        :param diagnoses_names: (list[str]) list of diagnoses
+        :return: (int) exit code
+        """
+        db = Database()
+        exit_code = ExitCodes.SUCCESS
+        for diagnose in diagnoses_names:
+            try:
+                diagnose = db.select_diagnoses(f"{kw.KW_DIAGNOSIS_NAME} = '{diagnose}'")[0]
+                exit_code |= db.delete_original_diagnoses(f"{kw.KW_OD_DIAGNOSIS_ID} = {diagnose} AND {kw.KW_OD_ORIGINAL_IMAGE_ID} = {self.ID}")
+            except IndexError:
+                db.close()
+                raise IndexError(f"Diagnose with given name '{diagnose}' not found")
+        db.close()
+        return exit_code
+
+

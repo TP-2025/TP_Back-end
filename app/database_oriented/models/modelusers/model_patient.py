@@ -14,11 +14,11 @@ class ModelPatient(ModelUser):
 
         name = kwargs.pop(kw.KW_USER_NAME, kw.V_EMPTY_STRING)
         surname = kwargs.pop(kw.KW_USER_SURNAME, kw.V_EMPTY_STRING)
-        date_of_birth = kwargs.pop(kw.KW_PATIENT_DATE_OF_BIRTH, kw.V_EMPTY_STRING)
+        #date_of_birth = kwargs.pop(kw.KW_PATIENT_DATE_OF_BIRTH, kw.V_EMPTY_STRING)
 
         super().__init__(ID, name, surname, 0, role_id, **kwargs)
         self.patient_id = patient_id
-        self.date_of_birth = date_of_birth
+        #self.date_of_birth = date_of_birth
         self.diagnosis = diagnosis
         self.medical_notes = medical_notes
         self.medic_id = medic_id
@@ -59,7 +59,7 @@ class ModelPatient(ModelUser):
         deconstructed = {
             **super().deconstructor(),
             kw.KW_PATIENT_ID: self.patient_id,
-            kw.KW_PATIENT_DATE_OF_BIRTH: self.date_of_birth,
+            # kw.KW_PATIENT_DATE_OF_BIRTH: self.date_of_birth,
             kw.KW_PATIENT_MEDIC_ID: self.medic_id
         }
         if not self.safe_mode:
@@ -108,8 +108,34 @@ class ModelPatient(ModelUser):
         :param simplified: (bool) if True, returns simplified list of original images
         :return: (list[dict]) list of original images
         """
-        images = self.search_original_images("", simplified)
-        return images
+        db = Database()
+        images = db.get_original_images(patient_id=self.patient_id)
+        if simplified:
+            simplified_list = []
+            for image in images:
+                try:
+                    simplified_list.append({
+                        kw.KW_IMAGE_ID: image[kw.KW_IMAGE_ID],
+                        kw.KW_IMAGE_EYE: image.get(kw.KW_IMAGE_EYE, "nezadané"),
+                        "processed_images": db.count_processed_images(
+                            f"{kw.KW_PIMAGE_OIMAGE_ID} = {image[kw.KW_IMAGE_ID]}")
+                    })
+                except KeyError:
+                    continue
+            db.close()
+            return simplified_list
+        else:
+            db.close()
+            return images
+
+    # def get_original_images(self, simplified: bool = False) -> list[dict]:
+    #     """
+    #     Returns list of original images connected to this patient
+    #     :param simplified: (bool) if True, returns simplified list of original images
+    #     :return: (list[dict]) list of original images
+    #     """
+    #     images = self.search_original_images("", simplified)
+    #     return images
 
     @staticmethod
     def get_original_image_model_by_id(image_id: int) -> ["ModelOriginalImage", None]:

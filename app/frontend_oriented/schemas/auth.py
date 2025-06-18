@@ -45,5 +45,3 @@ class CreateUser(BaseModel):
 class DeleteUser(BaseModel):
     id: int
 
-class ChangePassword(BaseModel):
-    password: str

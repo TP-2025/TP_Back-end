@@ -6,14 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.frontend_oriented.routes import auth  # napr. auth.py v routes priečinku
 from app.frontend_oriented.routes import admin
 from app.frontend_oriented.routes import user
-
-
-from fastapi import FastAPI, Request
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-import logging
+from app.frontend_oriented.utils.responses import ErrorErroor
 
 app = FastAPI()
+
+
 
 # Nastav CORS, aby frontend (napr. React) mohol komunikovať s backendom
 app.add_middleware(
@@ -29,11 +26,14 @@ app.include_router(auth.router, prefix="/api", tags=["auth"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 
 app.include_router(user.router, prefix="/api/user", tags=["user"])
+from fastapi import Request, HTTPException
+from fastapi.responses import JSONResponse
 
-#logger = logging.getLogger("uvicorn.error")
-
-#@app.exception_handler(RequestValidationError)
-#async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    # Zapíš chybu do logu
-#    logger.error(f"Validation error: {exc.errors()}")
-#    logger.error(f"Body: {await request.body()}")
+@app.exception_handler(ErrorErroor)
+async def error_erroor_handler(request: Request, exc: ErrorErroor):
+    return JSONResponse(
+        status_code=401 ,
+        content={
+            "success": False,
+            "message": f"{exc.error}"},
+    )

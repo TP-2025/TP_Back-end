@@ -2,16 +2,19 @@ import logging
 from datetime import datetime
 from datetime import date
 
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Request
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Request, Body
 from fastapi.exceptions import RequestValidationError
 
 from app.database_oriented.exitcodes_errors import InvalidTargetRoleError, ExitCodes
+from app.database_oriented.others.devices import Device
+from app.database_oriented.others.diagnoses import Diagnose
 from app.database_oriented.users.medic import Medic
 from app.database_oriented.users.technic import Technic
 from app.frontend_oriented.schemas.admin import GetPatientResponse
 from app.frontend_oriented.schemas.image import AddPicture, QualityEnum, EyeEnum
+from app.frontend_oriented.schemas.settings import AddDevice, GetDevicesResponse, Camera, GetDiagnoseResponse, Diagnoses
 from app.frontend_oriented.schemas.user import CreatePatient, CreateTechnic, PatientOut, GetPatientResponse, \
-    DeletePatient, GetUsersResponse, UserOut
+    DeletePatient, GetUsersResponse, UserOut, UserOutDate
 from app.frontend_oriented.services.auth import check_user, create_password, hash_password
 from app.frontend_oriented.services.image_service import save_upload_file
 from app.frontend_oriented.services.token_service import TokenService
@@ -20,6 +23,7 @@ import app.database_oriented.keywords as kw
 from app.database_oriented.users.admin import Admin
 
 from app.frontend_oriented.services.email import EmailService
+
 
 EmailService = EmailService()
 
@@ -113,6 +117,7 @@ def get_patients(current_user=Depends(check_user)):
         for patient in patients
     ]
     return GetPatientResponse(patients=user_responses)
+
 
 @router.get("/getUsers", response_model=GetUsersResponse)
 def get_users(current_user=Depends(check_user)):
@@ -234,5 +239,87 @@ async def add_picture(
 
 """
 
+@router.post("/addDevice", status_code=201)
+def add_device(device_data: AddDevice,current_user=Depends(check_user)):
+    if not isinstance(current_user, (Admin, Medic, Technic)):
+        raise HTTPException(status_code=403, detail="Fuck off")
+
+    device_dict = {
+        "nazov": device_data.name,
+        "typ": device_data.type,
+    }
 
 
+    exit_code = Device.add_device(device_dict)
+
+
+@router.get("/getDevices", response_model=GetDevicesResponse)
+def get_devices(current_user=Depends(check_user)):
+    if not isinstance(current_user, (Admin, Medic, Technic)):
+        raise HTTPException(status_code=403, detail="Fuckey off")
+
+
+    devices = Device.get_all_devices()
+
+    device_responses = [
+        Camera(
+            id=device["id"],
+            name=device["nazov"],
+            type=device["typ"]
+        )
+        for device in devices
+    ]
+
+    return GetDevicesResponse(devices=device_responses)
+
+@router.delete("/deleteDevice", status_code=204)
+def delete_device(device_id: int, current_user=Depends(check_user)):
+    if not isinstance(current_user, Admin):
+        raise HTTPException(status_code=403, detail="Fuckey off")
+
+    Device.delete_device_by_id(device_id)
+    return {"message": "device_deleted_successfully"}
+
+######
+
+@router.post("/addDiagnosis", status_code=201)
+def add_device(diagnose: Diagnoses, current_user=Depends(check_user)):
+    if not isinstance(current_user, (Admin, Medic)):
+        raise HTTPException(status_code=403, detail="Fuck off")
+
+    exit_code = Diagnose.add_diagnose(diagnose.name)
+
+
+@router.get("/getDiagnoses", response_model=GetDiagnoseResponse)
+def get_devices(current_user=Depends(check_user)):
+    if not isinstance(current_user, (Admin, Medic)):
+        raise HTTPException(status_code=403, detail="Fuckey off")
+
+
+    diagnoses = Diagnose.get_all_diagnoses()
+
+    diagnose_response = [
+        Diagnoses(
+            id=diagnose["id_diagnozy"],
+            name=diagnose["diagnoza"],
+        )
+        for diagnose in diagnoses
+    ]
+
+    return GetDiagnoseResponse(diagnoses=diagnose_response)
+
+
+@router.delete("/deleteDiagnosis", status_code=204)
+def delete_device(diagnose_id: int, current_user=Depends(check_user)):
+    if not isinstance(current_user, Admin):
+        raise HTTPException(status_code=403, detail="Fuckey off")
+
+    Diagnose.delete_diagnose_by_id(diagnose_id)
+    return {"message": "device_deleted_successfully"}
+
+@router.get("/getMyInfo", response_model=UserOutDate)
+def get_user_info(current_user=Depends(check_user)):
+    if not isinstance(current_user, (Admin, Medic, Technic)):
+        raise HTTPException(status_code=403, detail="Fuckey off")
+
+    current_user.

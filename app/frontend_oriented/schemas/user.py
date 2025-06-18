@@ -39,10 +39,22 @@ class UserOut(BaseModel):
     email: str
     id: int
 
+class UserOutDate(UserOut):
+    date: Optional[date]
+
 class GetUsersResponse(BaseModel):
     users: List[UserOut]
 
 
+from typing import Generic, TypeVar, Optional
+from pydantic.generics import GenericModel
+
+T = TypeVar("T")
+
+class APIResponse(GenericModel, Generic[T]):
+    success: bool
+    code: str
+    data: Optional[T]
 
 
 

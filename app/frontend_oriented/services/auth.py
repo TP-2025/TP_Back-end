@@ -63,3 +63,5 @@ def mask_name(name: str) -> str:
     if not name:
         return ""
     return name[0] + "*" * (len(name) - 1)
+
+

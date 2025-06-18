@@ -4,10 +4,17 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi import Response
 from pydantic import EmailStr
 
-from app.frontend_oriented.schemas.auth import LoginRequest, LoginResponse, UserOut, ChangePassword
+
+from app.database_oriented.users.admin import Admin
+from app.database_oriented.users.medic import Medic
+from app.database_oriented.users.technic import Technic
+from app.frontend_oriented.schemas.auth import LoginRequest, LoginResponse, UserOut
+from app.frontend_oriented.schemas.settings import ChangePassword, ChangePersonalInfo
+from app.frontend_oriented.schemas.user import APIResponse
 from app.frontend_oriented.services.auth import authenticate_user, check_user, hash_password, create_password
 from app.frontend_oriented.services.token_service import TokenService
 from app.frontend_oriented.services.email import EmailService
+from app.frontend_oriented.utils.responses import ErrorErroor
 
 router = APIRouter()
 token_service = TokenService()
@@ -48,15 +55,36 @@ def login(request: LoginRequest, response: Response):
     return LoginResponse(message= "Login succesful", user=UserOut(**user_response))
 
 
-@router.post("/changePassword")
+@router.post("/changePassword", response_model=APIResponse[None])
 def change_password(request: ChangePassword, current_user=Depends(check_user)):
-    hashed_password = hash_password(request.password)
-    err = current_user.update_my_password(hashed_password)
-    if err != 0:
-        raise HTTPException(status_code= 500, detail="server error")
+    if not isinstance(current_user, (Admin, Medic, Technic)):
+        raise ErrorErroor(error="Forbidden")
+    user = authenticate_user(request.email, request.old_password)
+    if not user:
+        raise ErrorErroor(error="old_password_is_invalid")
 
-#@router.post("/changeInformation")
-#def change_information(current_user=Depends(check_user)):
+    hashed_password = hash_password(request.new_password)
+
+    err = current_user.update_my_password(hashed_password)
+
+    if err != 0:
+        raise ErrorErroor(error="password_change_failed")
+
+@router.post("/changePersonalInfo", response_model=APIResponse[None])
+def change_info(request: ChangePersonalInfo, current_user=Depends(check_user)):
+    if not isinstance(current_user, (Admin, Medic, Technic)):
+        raise ErrorErroor(error="Forbidden")
+
+
+    current_user.update_my_password(user_dict)
+
+    class ChangePersonalInfo(BaseModel):
+        name: Optional[str] = None
+        surname: Optional[str] = None
+        birth_date: Optional[date] = None
+        sex: Optional[str] = None
+
+
 
 
 @router.post("/forgotPassword")
@@ -74,4 +102,5 @@ def reset_password(user_data: EmailStr):
     #err = current_user.update_my_password(hashed_password)
     #if err != 0:
     #    raise HTTPException(status_code= 500, detail="server error")
+
 

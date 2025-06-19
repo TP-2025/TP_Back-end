@@ -23,4 +23,6 @@ class Settings:
     DATABASE_PORT: int = 3306
 
 
+
+
 settings = Settings()

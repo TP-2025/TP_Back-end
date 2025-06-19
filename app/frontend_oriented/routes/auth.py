@@ -9,7 +9,7 @@ from app.database_oriented.users.admin import Admin
 from app.database_oriented.users.medic import Medic
 from app.database_oriented.users.technic import Technic
 from app.database_oriented.users.user import User
-from app.frontend_oriented.schemas.auth import LoginRequest, LoginResponse, UserOut
+from app.frontend_oriented.schemas.auth import LoginRequest, LoginResponse, UserOut, ForgotPassword
 from app.frontend_oriented.schemas.settings import ChangePassword, ChangePersonalInfo
 from app.frontend_oriented.schemas.user import APIResponse
 from app.frontend_oriented.services.auth import authenticate_user, check_user, hash_password, create_password
@@ -71,34 +71,54 @@ def change_password(request: ChangePassword, current_user=Depends(check_user)):
     if err != 0:
         raise ErrorErroor(error="password_change_failed")
 
-@router.post("/changePersonalInfo", response_model=APIResponse[None])
+
+from datetime import datetime
+
+@router.post("/changePersonalInfo", status_code=200)
 def change_info(request: ChangePersonalInfo, current_user=Depends(check_user)):
     if not isinstance(current_user, (Admin, Medic, Technic)):
         raise ErrorErroor(error="Forbidden")
 
 
-    current_user.update_my_password(user_dict)
 
-    class ChangePersonalInfo(BaseModel):
-        name: Optional[str] = None
-        surname: Optional[str] = None
-        birth_date: Optional[date] = None
-        sex: Optional[str] = None
+    birth_date_iso = None
+    if request.birth_date:
+        try:
 
+            parsed_date = datetime.strptime(request.birth_date, "%d.%m.%Y")
+            print(parsed_date)
+            birth_date_iso = parsed_date.strftime("%Y-%m-%d")
+        except ValueError:
+            raise ErrorErroor(error="invalid_date_format")  # Môžeš si zvoliť lepší text
 
+    print(request.birth_date)
 
+    print(birth_date_iso)
+
+    change_info_dict = {
+        "meno": request.name,
+        "priezvisko": request.surname,
+        "pohlavie": request.sex,
+        "datum_narodenia": birth_date_iso
+    }
+    err = current_user.update_my_info(change_info_dict)
+
+    if err != 0:
+        raise ErrorErroor(error="personal_info_update_failed")
+
+from fastapi import Form
 
 @router.post("/forgotPassword")
-def reset_password(user_data: str):
+def reset_password(user_data: ForgotPassword):
     password = create_password(7)
     hashed_password = hash_password(password)
 
     try:
-        EmailService.send_password_email(user_data, "user_data.name", password)
+        EmailService.send_password_email(user_data.email, "user_data.name", password)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
 
-    user = User.get_user_basic_info_by_email(user_data)
+    user = User.get_user_basic_info_by_email(user_data.email)
 
 
     role_id = user["role_id"]

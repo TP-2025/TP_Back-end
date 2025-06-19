@@ -39,8 +39,14 @@ class UserOut(BaseModel):
     email: str
     id: int
 
-class UserOutDate(UserOut):
-    date: Optional[date]
+class SexEnum(str, Enum):
+    Muž = "muž"
+    Žena = "žena"
+    Iné = "iné"
+
+class UserOutPersonal(UserOut):
+    date: Optional[str] = None
+    sex: Optional[SexEnum] = None
 
 class GetUsersResponse(BaseModel):
     users: List[UserOut]

@@ -14,7 +14,7 @@ from app.frontend_oriented.schemas.admin import GetPatientResponse
 from app.frontend_oriented.schemas.image import AddPicture, QualityEnum, EyeEnum
 from app.frontend_oriented.schemas.settings import AddDevice, GetDevicesResponse, Camera, GetDiagnoseResponse, Diagnoses
 from app.frontend_oriented.schemas.user import CreatePatient, CreateTechnic, PatientOut, GetPatientResponse, \
-    DeletePatient, GetUsersResponse, UserOut, UserOutDate
+    DeletePatient, GetUsersResponse, UserOut, UserOutPersonal
 from app.frontend_oriented.services.auth import check_user, create_password, hash_password
 from app.frontend_oriented.services.image_service import save_upload_file
 from app.frontend_oriented.services.token_service import TokenService
@@ -317,8 +317,21 @@ def delete_device(diagnose_id: int, current_user=Depends(check_user)):
     Diagnose.delete_diagnose_by_id(diagnose_id)
     return {"message": "device_deleted_successfully"}
 
-@router.get("/getMyInfo", response_model=UserOutDate)
+@router.get("/getMyInfo", response_model=UserOutPersonal)
 def get_user_info(current_user=Depends(check_user)):
     if not isinstance(current_user, (Admin, Medic, Technic)):
         raise HTTPException(status_code=403, detail="Fuckey off")
+
+    user = current_user._myself_model
+
+
+
+    return UserOutPersonal(
+        name=user.name,
+        surname=user.surname,
+        email=user.email,
+        id=user.ID,
+        sex=user.sex,
+        date=user.date_of_birth  # <- teraz je to správny typ: str alebo None
+    )
 

@@ -17,4 +17,6 @@ class Settings:
     ADMIN_PASSWORD: str = "yJ02+J1_?a<V<y!bWeWL"
 
 
+
+
 settings = Settings()

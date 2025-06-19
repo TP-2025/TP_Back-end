@@ -5,6 +5,9 @@ from enum import Enum
 
 from typing import Optional, List
 
+from app.frontend_oriented.schemas.user import SexEnum
+
+
 class AddDevice(BaseModel):
     name: str
     type: str
@@ -25,8 +28,8 @@ class ChangePassword(BaseModel):
 class ChangePersonalInfo(BaseModel):
     name: Optional[str] = None
     surname: Optional[str] = None
-    birth_date: Optional[date] = None
-    sex: Optional[str] = None
+    birth_date: Optional[str] = None
+    sex: Optional[SexEnum] = None
 
 class Diagnoses(BaseModel):
     id: Optional[int] = None

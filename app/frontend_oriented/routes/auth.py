@@ -42,7 +42,7 @@ def login(request: LoginRequest, response: Response):
         value=jwt_token,
         httponly=True,  # Zabezpečí, že cookie nebude dostupná cez JS
         secure=False,  # Nastav na True v produkcii (HTTPS!)
-        samesite="None",  # Alebo "Strict" / "None" (ak používaš cross-origin)
+        samesite="Lax",  # Alebo "Strict" / "None" (ak používaš cross-origin)
         max_age=7 * 24 * 60 * 60,  # 7 dní
         path="/"
     )

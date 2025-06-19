@@ -13,7 +13,7 @@ class ModelUser:
 
         self.email = kwargs.get(kw.KW_USER_EMAIL, kw.V_EMPTY_STRING)
         self.sex = kwargs.get(kw.KW_USER_SEX, kw.V_EMPTY_STRING)
-        self.date_of_birth = kwargs.get(kw.KW_USER_DATE_OF_BIRTH, kw.V_EMPTY_INT)
+        self.date_of_birth = kwargs.get(kw.KW_USER_DATE_OF_BIRTH, kw.V_EMPTY_STRING)
 
         self.data = kwargs
         self.selected_image = None

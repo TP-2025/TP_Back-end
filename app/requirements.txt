@@ -1,6 +1,7 @@
 PyJWT
 
-mysql.connector
+#mysql.connector
+mysql-connector-python
 
 fastapi
 pydantic

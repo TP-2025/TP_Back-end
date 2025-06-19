@@ -2,14 +2,16 @@ import app.database_oriented.keywords as kw
 from app.database_oriented.database import Database
 from app.database_oriented.exitcodes_errors import ExitCodes
 from app.database_oriented.models.modelimages.model_processed_image import ModelProcessedImage
+from app.frontend_oriented.routes.user import add_device
 
 
 class ModelOriginalImage:
-    def __init__(self, ID: int, patient_id: int, device_id: int, path_to_image: str, quality: str, eye: str,
+    def __init__(self, ID: int, patient_id: int, device_id: int, add_device_id: int, path_to_image: str, quality: str, eye: str,
                  technic_notes: str, diagnosis_notes: str, safe_mode: bool):
         self.ID = ID
         self.patient_id = patient_id
         self.device_id = device_id
+        self.add_device_id = add_device_id
         self.path_to_image = path_to_image
         self.quality = quality
         self.eye = eye
@@ -33,9 +35,11 @@ class ModelOriginalImage:
         except KeyError:
             raise KeyError("Original image doesn't have ID or patient ID, it cannot be constructed")
         device_id = data.get(kw.KW_DEVICE_ID, kw.V_EMPTY_INT)
+        add_device_id = data.get(kw.KW_ADD_DEVICE_ID, kw.V_EMPTY_INT)
         path_to_image = data.get(kw.KW_IMAGE_PATH, kw.V_EMPTY_STRING)
         quality = data.get(kw.KW_IMAGE_QUALITY, kw.V_EMPTY_STRING)
         eye = data.get(kw.KW_IMAGE_EYE, kw.V_EMPTY_STRING)
+
         if safe_mode:
             technic_notes = kw.V_EMPTY_STRING
             diagnosis_notes = kw.V_EMPTY_STRING
@@ -43,8 +47,8 @@ class ModelOriginalImage:
             technic_notes = data.get(kw.KW_IMAGE_NOTE_TECHNIC, kw.V_EMPTY_STRING)
             diagnosis_notes = data.get(kw.KW_IMAGE_NOTE_DIAGNOSIS, kw.V_EMPTY_STRING)
 
-        return ModelOriginalImage(ID, patient_id, device_id, path_to_image, quality, eye,
-                                  technic_notes, diagnosis_notes, safe_mode)
+        return ModelOriginalImage(ID, patient_id, device_id, add_device_id, path_to_image, quality, eye, technic_notes,
+                                  diagnosis_notes, safe_mode)
 
     def deconstructor(self) -> dict:
         """
@@ -54,6 +58,7 @@ class ModelOriginalImage:
         deconstructed = {kw.KW_IMAGE_ID: self.ID,
                          kw.KW_PATIENT_ID: self.patient_id,
                          kw.KW_DEVICE_ID: self.device_id,
+                         kw.KW_ADD_DEVICE_ID: self.add_device_id,
                          kw.KW_IMAGE_PATH: self.path_to_image,
                          kw.KW_IMAGE_QUALITY: self.quality,
                          kw.KW_IMAGE_EYE: self.eye

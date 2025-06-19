@@ -45,3 +45,5 @@ class CreateUser(BaseModel):
 class DeleteUser(BaseModel):
     id: int
 
+class ForgotPassword(BaseModel):
+    email: EmailStr

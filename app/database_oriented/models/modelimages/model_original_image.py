@@ -2,7 +2,7 @@ import app.database_oriented.keywords as kw
 from app.database_oriented.database import Database
 from app.database_oriented.exitcodes_errors import ExitCodes
 from app.database_oriented.models.modelimages.model_processed_image import ModelProcessedImage
-from app.frontend_oriented.routes.user import add_device
+#from app.frontend_oriented.routes.user import add_device
 
 
 class ModelOriginalImage:

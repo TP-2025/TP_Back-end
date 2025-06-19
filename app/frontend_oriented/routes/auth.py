@@ -9,6 +9,7 @@ from app.database_oriented.users.admin import Admin
 from app.database_oriented.users.medic import Medic
 from app.database_oriented.users.technic import Technic
 from app.database_oriented.users.user import User
+
 from app.frontend_oriented.schemas.auth import LoginRequest, LoginResponse, UserOut, ForgotPassword
 from app.frontend_oriented.schemas.settings import ChangePassword, ChangePersonalInfo
 from app.frontend_oriented.schemas.user import APIResponse

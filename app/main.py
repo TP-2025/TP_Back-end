@@ -2,8 +2,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Import route modulov
-from app.frontend_oriented.routes import auth  # napr. auth.py v routes priečinku
+
+from app.frontend_oriented.routes import auth
 from app.frontend_oriented.routes import admin
 from app.frontend_oriented.routes import user
 from app.frontend_oriented.utils.responses import ErrorErroor

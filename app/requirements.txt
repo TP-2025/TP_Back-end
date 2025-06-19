@@ -7,3 +7,4 @@ pydantic
 python-jose[cryptography]  # používa sa namiesto raw `jwt`, odporúčaná knižnica
 uvicorn[standard]  # pre spustenie FastAPI aplikácie
 email-validator  # pre EmailStr v Pydantic
+passlib[bcrypt]

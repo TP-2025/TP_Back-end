@@ -8,6 +8,7 @@ from pydantic import EmailStr
 from app.database_oriented.users.admin import Admin
 from app.database_oriented.users.medic import Medic
 from app.database_oriented.users.technic import Technic
+from app.database_oriented.users.user import User
 from app.frontend_oriented.schemas.auth import LoginRequest, LoginResponse, UserOut
 from app.frontend_oriented.schemas.settings import ChangePassword, ChangePersonalInfo
 from app.frontend_oriented.schemas.user import APIResponse
@@ -55,7 +56,7 @@ def login(request: LoginRequest, response: Response):
     return LoginResponse(message= "Login succesful", user=UserOut(**user_response))
 
 
-@router.post("/changePassword", response_model=APIResponse[None])
+@router.post("/changePassword")
 def change_password(request: ChangePassword, current_user=Depends(check_user)):
     if not isinstance(current_user, (Admin, Medic, Technic)):
         raise ErrorErroor(error="Forbidden")
@@ -88,19 +89,29 @@ def change_info(request: ChangePersonalInfo, current_user=Depends(check_user)):
 
 
 @router.post("/forgotPassword")
-def reset_password(user_data: EmailStr):
+def reset_password(user_data: str):
     password = create_password(7)
     hashed_password = hash_password(password)
 
     try:
-        EmailService.send_password_email(str(user_data.email), user_data.name, password)
+        EmailService.send_password_email(user_data, "user_data.name", password)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
 
+    user = User.get_user_basic_info_by_email(user_data)
 
 
-    #err = current_user.update_my_password(hashed_password)
-    #if err != 0:
-    #    raise HTTPException(status_code= 500, detail="server error")
+    role_id = user["role_id"]
+    user_id = user["id"]
+
+    match role_id:
+        case 2: user = Technic(ID=user_id, token="token")
+        case 3: user = Medic(ID=user_id, token="token")
+        case 4: user = Admin(ID=user_id, token="token")
+        case _: raise HTTPException(403, "Invalid role")
+
+    err = user.update_my_password(hashed_password)
+    if err != 0:
+        raise HTTPException(status_code= 500, detail="server error")
 
 

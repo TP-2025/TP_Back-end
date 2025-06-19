@@ -44,8 +44,8 @@ def create_patient(user_data: CreatePatient, current_user=Depends(check_user)):
         "priezvisko": user_data.surname,
         "email": user_data.email,
         "lekar_id": user_data.doctor_id,
-        "datum_narodenia": user_data.birth_date.strftime("%d.%m") if user_data.birth_date else None,
-        "rok_narodenia": user_data.birth_date.year if user_data.birth_date else None,
+        "datum_narodenia": user_data.birth_date.strftime("%d.%m.%Y") if user_data.birth_date else None,
+        #"rok_narodenia": user_data.birth_date.year if user_data.birth_date else None,
         "pohlavie": user_data.sex
     }
 
@@ -322,4 +322,3 @@ def get_user_info(current_user=Depends(check_user)):
     if not isinstance(current_user, (Admin, Medic, Technic)):
         raise HTTPException(status_code=403, detail="Fuckey off")
 
-    current_user.

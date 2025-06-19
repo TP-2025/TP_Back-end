@@ -2,6 +2,7 @@ import mysql.connector
 import app.database_oriented.keywords as kw
 
 from app.database_oriented.exitcodes_errors import ExitCodes
+from app.settings import settings
 
 """
 Uses:
@@ -44,11 +45,11 @@ class Database:
         self.cursor = None
         db_config = {
             # data for database connection (for now for test -> need to change)
-            "host": "sql7.freesqldatabase.com",
-            "user": "sql7774696",
-            "password": "A3NhQWp1Iu",
-            "database": "sql7774696",
-            "port": 3306
+            "host": settings.DATABASE_HOST,
+            "user": settings.DATABASE_USER,
+            "password": settings.DATABASE_PASSWORD,
+            "database": settings.DATABASE_NAME,
+            "port": settings.DATABASE_PORT
         }
 
         try:

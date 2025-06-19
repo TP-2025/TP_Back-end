@@ -10,6 +10,9 @@ from app.database_oriented.others.devices import Device
 from app.database_oriented.others.diagnoses import Diagnose
 from app.database_oriented.users.medic import Medic
 from app.database_oriented.users.technic import Technic
+
+from app.database_oriented.models.modelimages.model_original_image import ModelOriginalImage
+
 from app.frontend_oriented.schemas.admin import GetPatientResponse
 from app.frontend_oriented.schemas.image import AddPicture, QualityEnum, EyeEnum
 from app.frontend_oriented.schemas.settings import AddDevice, GetDevicesResponse, Camera, GetDiagnoseResponse, Diagnoses
@@ -19,11 +22,15 @@ from app.frontend_oriented.services.auth import check_user, create_password, has
 from app.frontend_oriented.services.image_service import save_upload_file
 from app.frontend_oriented.services.token_service import TokenService
 import app.database_oriented.keywords as kw
+from app.database_oriented.keywords import (
+    KW_IMAGE_PATH, KW_PATIENT_ID, KW_DEVICE_ID, KW_IMAGE_QUALITY, KW_IMAGE_EYE,
+    KW_IMAGE_NOTE_TECHNIC, KW_IMAGE_DATE, KW_IMAGE_TECHNIC_ID
+)
 
 from app.database_oriented.users.admin import Admin
 
 from app.frontend_oriented.services.email import EmailService
-
+from app.frontend_oriented.utils.responses import ErrorErroor
 
 EmailService = EmailService()
 
@@ -172,8 +179,8 @@ async def add_picture(
     additional_equipment_id: Optional[int] = Form(None),
     quality: Optional[QualityEnum] = Form(None),
     technic_notes: Optional[str] = Form(None),
-    eye: Optional[EyeEnum] = Form(None),
-    date: Optional[date] = Form(None),
+    eye: EyeEnum = Form(...),
+    date: Optional[str] = Form(None),
     technician_id: Optional[int] = Form(None),
     image: Optional[UploadFile] = File(None),
     current_user=Depends(check_user),
@@ -182,62 +189,57 @@ async def add_picture(
     if not isinstance(current_user, (Admin, Medic, Technic)):
         raise HTTPException(status_code=403, detail="Forbidden")
 
+
+
+    def debug_print_form_data(**kwargs):
+        print("🧪 DEBUG: Received form data:")
+        for key, value in kwargs.items():
+            print(f"  {key}: {value}")
+
+    debug_print_form_data(
+        patient_id=patient_id,
+        device_id=device_id,
+        additional_equipment_id=additional_equipment_id,
+        quality=quality,
+        technic_notes=technic_notes,
+        eye=eye,
+        date=date,
+        technician_id=technician_id
+    )
+
     # Ulož obrázok
     saved_path = await save_upload_file(image)
 
-    from app.database_oriented.keywords import (
-        KW_IMAGE_PATH, KW_PATIENT_ID, KW_DEVICE_ID, KW_IMAGE_QUALITY, KW_IMAGE_EYE,
-        KW_IMAGE_NOTE_TECHNIC, KW_IMAGE_DATE, KW_IMAGE_TECHNIC_ID
-    )
+    iso_date = None
+    if date:
+        try:
+            parsed_date = datetime.strptime(date, "%d.%m.%Y")
+            iso_date = parsed_date.date()  # ⬅️ TOTO je to, čo databáza očakáva (nie string)
+        except ValueError:
+            raise ErrorErroor(error="invalid_date_format")
+
+
 
     image_data = {
         KW_IMAGE_PATH: saved_path,
         KW_PATIENT_ID: patient_id,
-        KW_DEVICE_ID: device_id if device_id is not None else kw.V_EMPTY_INT,
-        #KW_ADDITIONAL_EQUIPMENT_ID: additional_equipment_id if additional_equipment_id is not None else kw.V_EMPTY_INT,
-        KW_IMAGE_QUALITY: quality if quality is not None else kw.V_EMPTY_STRING,
-        KW_IMAGE_EYE: eye if eye is not None else kw.V_EMPTY_STRING,
-        KW_IMAGE_NOTE_TECHNIC: technic_notes if technic_notes is not None else kw.V_EMPTY_STRING,
-        KW_IMAGE_DATE: date if date is not None else kw.V_EMPTY_STRING,
-        KW_IMAGE_TECHNIC_ID: technician_id if technician_id is not None else kw.V_EMPTY_INT,
+        "zariadenie_id": device_id,
+        #KW_ADDITIONAL_EQUIPMENT_ID: additional_equipment_id,
+        KW_IMAGE_QUALITY: quality,
+        KW_IMAGE_EYE: eye,
+        KW_IMAGE_NOTE_TECHNIC: technic_notes,
+        "datum_snimania": iso_date,
+        KW_IMAGE_TECHNIC_ID: technician_id,
     }
-    from app.database_oriented.models.modelimages.model_original_image import ModelOriginalImage
+
 
     exit_code, model_image = ModelOriginalImage.add_original_image(image_data)
 
     if exit_code != ExitCodes.SUCCESS:
-        raise HTTPException(status_code=500, detail="Failed to add image")
+        raise ErrorErroor(error="failed_to_add_original_image") #Error500 ?
 
-    return {"filename"}
+    return {"message": "original_image_added"}
 
-"""
-
-@router.post("/addPicture", status_code=201)
-async def add_picture(
-        patient_id: int = Form(...),
-        device_id: Optional[int] = Form(None),
-        additional_equipment_id: Optional[int] = Form(None),
-        quality: Optional[QualityEnum] = Form(None),
-        technic_notes: Optional[str] = Form(None),
-        eye: Optional[EyeEnum] = Form(None),
-        date: Optional[date] = Form(None),
-        technician_id: Optional[int] = Form(None),
-        image: UploadFile = File(...),  # image je povinný, nie Optional
-        current_user=Depends(check_user),
-):
-    # Tu daj aspoň nejaký print/debug
-    print(f"Got upload from patient_id={patient_id} by user={current_user}")
-
-    # Pre jednoduché testovanie - načítaj aspoň header obrázka
-    content = await image.read()
-    print(f"Image size: {len(content)} bytes, filename={image.filename}")
-
-    # Tu môžeš uložiť obrázok a spracovať metadáta
-    # ...
-
-    return {"message": "Image uploaded successfully", "patient_id": patient_id}
-
-"""
 
 @router.post("/addDevice", status_code=201)
 def add_device(device_data: AddDevice,current_user=Depends(check_user)):

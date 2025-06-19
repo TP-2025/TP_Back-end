@@ -86,14 +86,10 @@ def change_info(request: ChangePersonalInfo, current_user=Depends(check_user)):
         try:
 
             parsed_date = datetime.strptime(request.birth_date, "%d.%m.%Y")
-            print(parsed_date)
             birth_date_iso = parsed_date.strftime("%Y-%m-%d")
         except ValueError:
-            raise ErrorErroor(error="invalid_date_format")  # Môžeš si zvoliť lepší text
+            raise ErrorErroor(error="invalid_date_format")
 
-    print(request.birth_date)
-
-    print(birth_date_iso)
 
     change_info_dict = {
         "meno": request.name,

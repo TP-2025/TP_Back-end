@@ -8,6 +8,7 @@ TBL_USERS = "uzivatelia"
 TBL_DEVICES = "zariadenia"
 TBL_DIAGNOSIS = "diagnozy"
 TBL_ORIGINAL_DIAGNOSIS = "originalne_obrazy_diagnozy"
+TBL_ADDITIONAL_DEVICES = "pridavne_zariadenia"
 
 
 # rights
@@ -103,6 +104,10 @@ KW_DEVICE_ID = "id"
 KW_DEVICE_NAME = "nazov"
 KW_DEVICE_TYPE = "typ"
 
+# Keywords for accessing additional devices in database
+KW_ADD_DEVICE_ID = "id"
+KW_ADD_DEVICE_NAME = "nazov"
+
 # Keywords for accessing diagnoses in database
 KW_DIAGNOSIS_ID = "id_diagnozy"
 KW_DIAGNOSIS_NAME = "diagnoza"
@@ -124,6 +129,7 @@ KW_LIST_PIMAGE = [KW_PIMAGE_OIMAGE_ID, KW_PIMAGE_USED_METHOD_ID, KW_PIMAGE_RESUL
                   KW_PIMAGE_STATE, KW_PIMAGE_QUALITY, KW_PIMAGE_NOTE_TECHNIC, KW_PIMAGE_NOTE_MEDIC,
                   KW_PIMAGE_PATH]
 KW_LIST_DEVICE = [KW_DEVICE_NAME, KW_DEVICE_TYPE]
+KW_LIST_ADD_DEVICE = [KW_ADD_DEVICE_NAME,]
 KW_LIST_ROLE = [KW_ROLE_NAME,]
 KW_LIST_METHOD = [KW_METHOD_NAME,]
 KW_LIST_DIAGNOSIS = [KW_DIAGNOSIS_NAME,]

@@ -2,6 +2,7 @@ import mysql.connector
 import app.database_oriented.keywords as kw
 
 from app.database_oriented.exitcodes_errors import ExitCodes
+from app.settings import settings
 
 """
 Uses:
@@ -44,11 +45,11 @@ class Database:
         self.cursor = None
         db_config = {
             # data for database connection (for now for test -> need to change)
-            "host": "sql7.freesqldatabase.com",
-            "user": "sql7774696",
-            "password": "A3NhQWp1Iu",
-            "database": "sql7774696",
-            "port": 3306
+            "host": settings.DATABASE_HOST,
+            "user": settings.DATABASE_USER,
+            "password": settings.DATABASE_PASSWORD,
+            "database": settings.DATABASE_NAME,
+            "port": settings.DATABASE_PORT
         }
 
         try:
@@ -703,6 +704,83 @@ class Database:
         - int: The number of devices, or -1 on error.
         """
         return self.__count(kw.TBL_DEVICES, condition)
+
+    # Additional devices
+    def insert_one_additional_device(self, additional_device: dict) -> int:
+        """
+        Inserts a single additional device into the kw.TBL_ADDITIONAL_DEVICES table.
+
+        Parameters:
+        - additional_device (dict): Dictionary containing additional device fields.
+
+        Returns:
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
+        """
+        additional_device = self._filter_dict(additional_device, kw.KW_LIST_ADD_DEVICE)
+        return self.__insert(kw.TBL_ADDITIONAL_DEVICES, [additional_device, ])
+
+    def insert_additional_devices(self, additional_devices: list) -> int:
+        """
+        Inserts multiple additional devices into the kw.TBL_ADDITIONAL_DEVICES table.
+
+        Parameters:
+        - additional_devices (list): List of additional device dictionaries.
+
+        Returns:
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_INSERT_ERROR on error.
+        """
+        additional_devices = [self._filter_dict(additional_device, kw.KW_LIST_ADD_DEVICE) for additional_device in additional_devices]
+        return self.__insert(kw.TBL_ADDITIONAL_DEVICES, additional_devices)
+
+    def delete_additional_devices(self, condition: str) -> int:
+        """
+        Deletes additional devices from the kw.TBL_ADDITIONAL_DEVICES table based on a condition.
+
+        Parameters:
+        - condition (str): SQL WHERE condition.
+
+        Returns:
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_DELETE_ERROR on error.
+        """
+        return self.__delete(kw.TBL_ADDITIONAL_DEVICES, condition)
+
+    def select_additional_devices(self, condition: str = None) -> list:
+        """
+        Retrieves additional devices from the kw.TBL_ADDITIONAL_DEVICES table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - list: List of additional device records.
+        """
+        return self.__select(kw.TBL_ADDITIONAL_DEVICES, condition)
+
+    def update_additional_devices(self, updates: dict, condition: str) -> int:
+        """
+        Updates specific columns in the kw.TBL_ADDITIONAL_DEVICES table based on a condition.
+
+        Parameters:
+        - updates (dict): Dictionary of column-value pairs to update.
+        - condition (str): SQL WHERE condition to specify which rows to update.
+
+        Returns:
+        - int: ExitCodes.SUCCESS on success, ExitCodes.DATABASE_UPDATE_ERROR on error.
+        """
+        updates = self._filter_dict(updates, kw.KW_LIST_ADD_DEVICE)
+        return self.__update(kw.TBL_ADDITIONAL_DEVICES, updates, condition)
+
+    def count_additional_devices(self, condition: str = None) -> int:
+        """
+        Counts the number of additional devices in the kw.TBL_ADDITIONAL_DEVICES table.
+
+        Parameters:
+        - condition (str, optional): SQL WHERE condition.
+
+        Returns:
+        - int: The number of additional devices, or -1 on error.
+        """
+        return self.__count(kw.TBL_ADDITIONAL_DEVICES, condition)
     
     # Roles
     def insert_one_role(self, role: dict) -> int:

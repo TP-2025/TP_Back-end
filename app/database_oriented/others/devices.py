@@ -14,6 +14,7 @@ class Device:
         Returns device with a given ID
         :param ID: (int) device ID
         :return: (dict) device
+        :raise: IndexError: if device with given ID not found
         """
         db = Database()
         try:
@@ -30,6 +31,7 @@ class Device:
         Returns device with a given name
         :param name: (str) device name
         :return: (dict) device
+        :raise: IndexError: if device with given name not found
         """
         db = Database()
         try:
@@ -61,6 +63,19 @@ class Device:
         """
         db = Database()
         exit_code = db.delete_devices(f"{kw.KW_DEVICE_ID} = {ID}")
+        db.close()
+        return exit_code
+
+    @staticmethod
+    def update_device_by_id(ID: int, data: dict) -> int:
+        """
+        Updates device by ID
+        :param ID: (int) device ID
+        :param data: (dict) dictionary of device data
+        :return: (int) exit code
+        """
+        db = Database()
+        exit_code = db.update_devices(data, f"{kw.KW_DEVICE_ID} = {ID}")
         db.close()
         return exit_code
 

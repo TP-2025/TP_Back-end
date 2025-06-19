@@ -16,6 +16,12 @@ class Settings:
     ADMIN_EMAIL: str = "admin@admin.com"
     ADMIN_PASSWORD: str = "yJ02+J1_?a<V<y!bWeWL"
 
+    DATABASE_HOST: str = "sql7.freesqldatabase.com"
+    DATABASE_USER: str = "sql7774696"
+    DATABASE_PASSWORD: str = "A3NhQWp1Iu"
+    DATABASE_NAME: str = "sql7774696"
+    DATABASE_PORT: int = 3306
+
 
 
 

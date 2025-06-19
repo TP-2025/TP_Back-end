@@ -90,7 +90,7 @@ class User:
         return exit_code
 
     @staticmethod
-    def send_original_image_for_processing(image_id: int, additional_data: dict, wrapped: Database) -> (
+    def send_original_image_for_processing(image_id: int, additional_data: dict, wrapped: Database = None) -> (
     int, ModelProcessedImage):
         """
         Function sends original image for processing
@@ -221,6 +221,12 @@ class User:
             exit_code = self.selected_user.delete_me()
             self.selected_user = None
             return exit_code
+
+        elif self.rights & kw.ALLOWED_TO_DELETE_ADMINS and self.selected_user.role_name == kw.ROLE_ADMIN:
+            exit_code = self.selected_user.delete_me()
+            self.selected_user = None
+            return exit_code
+
         else:
             #raise PermissionError(f"Not allowed to delete users with role {self.selected_user.role}")
             raise PermissionError(f"Not allowed to delete users with role")

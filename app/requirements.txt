@@ -9,3 +9,4 @@ uvicorn[standard]  # pre spustenie FastAPI aplikácie
 email-validator  # pre EmailStr v Pydantic
 passlib[bcrypt]
 aiofiles
+python-multipart

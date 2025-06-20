@@ -1,6 +1,7 @@
 from app.database_oriented.database import Database
 import app.database_oriented.keywords as kw
 
+
 class Method:
     def __init__(self, ID: int, method: str):
         self.ID = ID

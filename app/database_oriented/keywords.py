@@ -72,7 +72,7 @@ KW_PATIENT_DIAGNOSIS = "diagnoza"
 KW_IMAGE_ID = "id"
 KW_IMAGE_PATIENT_ID = "pacient_id"
 KW_IMAGE_DEVICE_ID = "zariadenie_id"
-KW_IMAGE_ADD_DEVICE_ID = "pridavne_zariadenie_id"
+KW_IMAGE_ADD_DEVICE_ID = "id_pridavneho_zariadenia"
 KW_IMAGE_PATH = "cesta_k_suboru"
 KW_IMAGE_QUALITY = "kvalita"
 KW_IMAGE_NOTE_TECHNIC = "technicke_pozn"
@@ -106,7 +106,7 @@ KW_DEVICE_NAME = "nazov"
 KW_DEVICE_TYPE = "typ"
 
 # Keywords for accessing additional devices in database
-KW_ADD_DEVICE_ID = "id"
+KW_ADD_DEVICE_ID = "id_pz"
 KW_ADD_DEVICE_NAME = "nazov"
 
 # Keywords for accessing diagnoses in database

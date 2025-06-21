@@ -1,4 +1,6 @@
 from typing import Optional, Union
+
+from cffi.model import qualify
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Request, Body, Form
 from datetime import datetime
 
@@ -12,8 +14,7 @@ import app.database_oriented.keywords as kw
 from app.frontend_oriented.services.auth import check_rights
 from app.frontend_oriented.services.image_service import save_upload_file
 from app.frontend_oriented.utils.responses import ErrorErroor
-from app.frontend_oriented.schemas.image import EyeEnum, QualityEnum
-
+from app.frontend_oriented.schemas.image import EyeEnum, QualityEnum, OriginalPictureOut, GetOriginalPictures
 
 router = APIRouter()
 
@@ -48,7 +49,12 @@ async def add_picture(
         technician_id=technician_id
     )
 
-    saved_path = await save_upload_file(image)
+    saved_path = await save_upload_file(
+    upload_file=image,
+    patient_id=patient_id,
+    eye=eye,
+    date=date
+)
 
     iso_date = None
     if date:
@@ -62,7 +68,7 @@ async def add_picture(
         kw.KW_IMAGE_PATH: saved_path,
         kw.KW_PATIENT_ID: patient_id,
         "zariadenie_id": device_id,
-        #KW_ADDITIONAL_EQUIPMENT_ID: additional_equipment_id,
+        "id_pridavneho_zariadenia": additional_equipment_id,
         kw.KW_IMAGE_QUALITY: quality,
         kw.KW_IMAGE_EYE: eye,
         kw.KW_IMAGE_NOTE_TECHNIC: technic_notes,
@@ -77,14 +83,31 @@ async def add_picture(
 
     return {"message": "original_image_added"}
 
-router.get("/getOriginalPictures")
+@router.get("/getOriginalPictures", response_model=GetOriginalPictures)
 def get_original_images(
     current_user: Union[Admin, Medic, Technic] = Depends(check_rights("get_original_pictures"))
 ):
 
-    current_user.get_original_images()
+    images = current_user.get_original_images()
 
+    image_response = [
+        OriginalPictureOut(
+        id=image["id"],
+        patient_id=image["pacient_id"],
+        path=f"/{image['cesta_k_suboru']}",
+        quality=image["kvalita"],
+        eye=image["oko"],
+        technic_notes=image["technicke_pozn"],
+        diagnostic_notes=image["diagnosticke_pozn"],
+        device_id=image["zariadenie_id"],
+        additional_device_id=image["id_pridavneho_zariadenia"],
+        date=image["datum_snimania"].isoformat() if image["datum_snimania"] else None,
+        technic_id=image["technik_id"]
+        )
+        for image in images
+    ]
 
+    return GetOriginalPictures(pictures=image_response)
 
 @router.post("/sendForProcessing", status_code=201)
 async def send_for_processing(
@@ -93,7 +116,7 @@ async def send_for_processing(
     current_user.send_original_image_for_processing()
     return {"message": "send_for_processing"}
 
-router.get("/getProcessedImages")
+@router.get("/getProcessedImages")
 def get_processed_images(
     current_user: Union[Admin, Medic, Technic] = Depends(check_rights("get_processed_pictures"))
 ):

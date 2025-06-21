@@ -179,7 +179,7 @@ from typing import Optional, Union
 """
     Routers for Device management
 """
-@router.post("/addDevice", status_code=201)
+@router.post("/addDevice", status_code=204)
 def add_device(
     device_data: DeviceCreate,
     _: Union[Admin, Medic, Technic] = Depends(check_rights("add_device"))
@@ -229,9 +229,12 @@ def edit_device(
 
 @router.delete("/deleteDevice", status_code=204)
 def delete_device(
-    device_data: DeviceDelete,
+    #id: int = Form(...), #This is before
+    device_data: DeviceDelete, #This is now
     _: Union[Admin, Medic, Technic] = Depends(check_rights("delete_device"))
 ):
+
+
 
     exit_code = Device.delete_device_by_id(device_data.id)
 
@@ -243,7 +246,7 @@ def delete_device(
     Routers for Additional device management
 """
 
-@router.post("/addAdditionalDevice", status_code=201)
+@router.post("/addAdditionalDevice", status_code=204)
 def add_additional_device(
     device_data: AdditionalDeviceCreate,
     _: Union[Admin, Medic, Technic] = Depends(check_rights("add_additional_device"))
@@ -302,7 +305,7 @@ def delete_additional_device(
     Routers for Diagnosis management
 """
 
-@router.post("/addDiagnosis", status_code=201)
+@router.post("/addDiagnosis", status_code=204)
 def add_diagnosis(
     diagnose: DiagnoseCreate,
     _: Union[Admin, Medic, Technic] = Depends(check_rights("add_diagnosis"))
@@ -354,7 +357,7 @@ def delete_diagnosis(
     Routers for Methods management
 """
 
-@router.post("/addMethod", status_code=201)
+@router.post("/addMethod", status_code=204)
 def add_method(
     method_data: MethodCreate,
     _: Union[Admin, Medic, Technic] = Depends(check_rights("add_method"))
@@ -410,9 +413,7 @@ def delete_method(
 
 
 @router.get("/getMyInfo", response_model=UserOutPersonal)
-def get_user_info(current_user=Depends(check_user)):
-    if not isinstance(current_user, (Admin, Medic, Technic)):
-        raise HTTPException(status_code=403, detail="Fuckey off")
+def get_user_info(current_user: Union[Admin, Medic, Technic] = Depends(check_rights("get_my_info"))):
 
     user = current_user._myself_model
 

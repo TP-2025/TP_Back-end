@@ -1,7 +1,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from starlette.staticfiles import StaticFiles
 
 from app.frontend_oriented.routes import auth
 from app.frontend_oriented.routes import admin
@@ -11,7 +11,7 @@ from app.frontend_oriented.utils.responses import ErrorErroor
 
 app = FastAPI()
 
-
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Nastav CORS, aby frontend (napr. React) mohol komunikovať s backendom
 app.add_middleware(

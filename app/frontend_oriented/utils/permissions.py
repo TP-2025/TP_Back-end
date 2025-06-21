@@ -28,4 +28,7 @@ PERMISSIONS = {
     "send_for_processing": (Admin, Medic),
     "get_processed_pictures": (Admin, Medic),
 
+
+    "get_my_info": (Admin, Medic, Technic),
+
 }

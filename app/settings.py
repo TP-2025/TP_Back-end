@@ -1,5 +1,8 @@
 import os
 
+
+
+
 class Settings:
     #Potrebné pridať legit smtp server s vlastnou doménou. Toto je len free služba, ktorá hádže všetky emaily do spamu!
     #Tiež je vhodné zrejme prerobiť subject, premiestniť ho z nastavení...
@@ -26,3 +29,4 @@ class Settings:
 
 
 settings = Settings()
+

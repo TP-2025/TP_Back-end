@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.frontend_oriented.routes import auth
 from app.frontend_oriented.routes import admin
 from app.frontend_oriented.routes import user
+from app.frontend_oriented.routes import image
 from app.frontend_oriented.utils.responses import ErrorErroor
 
 app = FastAPI()
@@ -26,6 +27,9 @@ app.include_router(auth.router, prefix="/api", tags=["auth"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 
 app.include_router(user.router, prefix="/api/user", tags=["user"])
+
+app.include_router(image.router, prefix="/api/image", tags=["image"])
+
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 

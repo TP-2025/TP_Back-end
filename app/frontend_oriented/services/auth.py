@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Callable
 from urllib.request import Request
 
 from passlib.context import CryptContext
@@ -8,6 +8,9 @@ from app.database_oriented.users.user import User
 from fastapi import Request, HTTPException, Depends
 
 from app.frontend_oriented.services.token_service import TokenService
+from app.frontend_oriented.utils.permissions import PERMISSIONS
+from app.frontend_oriented.utils.responses import ErrorErroor
+
 token_service = TokenService()
 
 
@@ -58,6 +61,19 @@ def check_user(request: Request) -> Union[Admin, Medic, Technic, Patient]:
         case 3: return Medic(ID=user_id, token=token)
         case 4: return Admin(ID=user_id, token=token)
         case _: raise HTTPException(403, "Invalid role")
+
+
+def check_rights(action: str) -> Callable:
+    def dependency(current_user=Depends(check_user)):
+        allowed_roles = PERMISSIONS.get(action)
+        if not allowed_roles:
+            raise ErrorErroor(error="something_is_wrong")
+
+        if not isinstance(current_user, allowed_roles):
+            raise ErrorErroor(error="Forbidden") #TODO pridať do ErrorErroor iné status kódy
+
+        return current_user
+    return dependency
 
 def mask_name(name: str) -> str:
     if not name:

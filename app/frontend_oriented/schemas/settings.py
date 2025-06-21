@@ -8,17 +8,86 @@ from typing import Optional, List
 from app.frontend_oriented.schemas.user import SexEnum
 
 
-class AddDevice(BaseModel):
+class DeviceBase(BaseModel):
     name: str
     type: str
 
-class Camera(BaseModel):
+class DeviceCreate(DeviceBase):
+    pass
+
+class DeviceUpdate(DeviceBase):
     id: int
-    name: str
-    type: str
 
-class GetDevicesResponse(BaseModel):
-    devices: List[Camera]
+class DeviceDelete(BaseModel):
+    id: int
+
+class DeviceOut(DeviceBase):
+    id: int
+
+class GetDevices(BaseModel):
+    devices: List[DeviceOut]
+
+
+class AdditionalDeviceBase(BaseModel):
+    name: str
+
+class AdditionalDeviceCreate(AdditionalDeviceBase):
+    pass
+
+class AdditionalDeviceUpdate(AdditionalDeviceBase):
+    id: int
+
+class AdditionalDeviceDelete(BaseModel):
+    id: int
+
+class AdditionalDeviceOut(AdditionalDeviceBase):
+    id: int
+
+class GetAdditionalDevices(BaseModel):
+    devices: List[AdditionalDeviceOut]
+
+
+class DiagnoseBase(BaseModel):
+    name: str
+
+class DiagnoseCreate(DiagnoseBase):
+    pass
+
+class DiagnoseUpdate(DiagnoseBase):
+    id: int
+
+class DiagnoseDelete(BaseModel):
+    id: int
+
+class DiagnoseOut(DiagnoseBase):
+    id: int
+
+class GetDiagnoses(BaseModel):
+    diagnoses: List[DiagnoseOut]
+
+
+class MethodBase(BaseModel):
+    name: str
+
+class MethodCreate(MethodBase):
+    pass
+
+class MethodUpdate(MethodBase):
+    id: int
+
+class MethodDelete(BaseModel):
+    id: int
+
+class MethodOut(MethodBase):
+    id: int
+
+class GetMethods(BaseModel):
+    methods: List[MethodOut]
+
+
+
+
+
 
 class ChangePassword(BaseModel):
     email: str
@@ -31,9 +100,3 @@ class ChangePersonalInfo(BaseModel):
     birth_date: Optional[str] = None
     sex: Optional[SexEnum] = None
 
-class Diagnoses(BaseModel):
-    id: Optional[int] = None
-    name: str
-
-class GetDiagnoseResponse(BaseModel):
-    diagnoses: List[Diagnoses]
